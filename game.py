@@ -6,4 +6,6 @@ screen = pygame.display.set_mode((1280,720))
 
 Running = True
 while Running:
-    pass
+    for event in pygame.event.get():
+        if event.type == pygame.quit():
+            runnung = False
