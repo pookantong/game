@@ -54,6 +54,7 @@ def gameloop():
                         gameover = False
                     if event.key == pygame.K_c:
                         gameloop() 
+                        
         for event in pygame.event.get():
             if event.type == pygame.QUIT:#close win
                 gameexit = True
