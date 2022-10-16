@@ -1,61 +1,109 @@
 import pygame, sys
 
 clock = pygame.time.Clock()
+FPS = 60
 
 from pygame.locals import *
 pygame.init()
 
-Win_size=(400,400)
+Screen_Width = 800
+Screen_Height = 800*0.8
 
-screen = pygame.display.set_mode(Win_size, 0,32)
-
-player_image = pygame.image.load('profund_game/player.png')
-player_location = [50,50]
-player_y_momentum = 0
-
-player_rect = pygame.Rect(player_location[0]-10,player_location[1],player_image.get_width()-10,player_image.get_height())
-test_rect = pygame.Rect(100,100,100,50)
-
-movingleft = False 
-movingright = False 
+screen = pygame.display.set_mode((Screen_Width,Screen_Height))
+pygame.display.set_caption('The Soldier')
 
 
-while True :
-    screen.fill('black')
-    screen.blit(player_image,player_location)
+class Soldier(pygame.sprite.Sprite):
     
-    if player_location[1] > Win_size[1]-player_image.get_height():
-        player_y_momentum = -player_y_momentum
-    else:
-        player_y_momentum += 0.2    
-    player_location[1] += player_y_momentum
-    
-    if movingleft == True:
-        player_location[0] -= 4
-    if movingright == True:
-        player_location[0] += 4  
+    def __init__(self, char_type, x, y,scale,speed ):
+        pygame.sprite.Sprite.__init__(self)
+        self.char_type = char_type
+        self.speed = speed
+        self.direction = 1
+        self.flip = False
+        self.animation_list = []
+        self.frame_index = 0
+        self.action = 0
+        self.update_time = pygame.time.get_ticks()
+        tmp_list = []
+        for i in range(7):
+            img = pygame.image.load(f'img/{self.char_type}/run/{i}.png')
+            img = pygame.transform.scale(img,(int(img.get_width()*scale),int(img.get_height()*scale)))
+            tmp_list.append(img)
+        for i in range(3):
+            img = pygame.image.load(f'img/{self.char_type}/run/{i}.png')
+            img = pygame.transform.scale(img,(int(img.get_width()*scale),int(img.get_height()*scale)))
+            tmp_list.append(img)
+        self.animation_list.append(tmp_list)
+        self.image = self.animation_list[self.action][self.frame_index]
+        self.rect = self.image.get_rect()
+        self.rect.center = (x,y)
         
-    player_rect.x = player_location[0]
-    player_rect.y = player_location[1]
-           
-    if player_rect.colliderect(test_rect):
-        pygame.draw.rect(screen,(255,0,0),test_rect)
-    else :
-        pygame.draw.rect(screen,(0,0,255),test_rect)
+    def move(self, moving_left, moving_right):
+        
+        #reset movement
+        dx = 0
+        dy = 0
+        
+        if moving_left:
+            dx =  -self.speed
+            self.flip = True
+            self.direction = -1
+        if moving_right:
+            dx =  self.speed
+            self.flip = False
+            self.direction = 1
+        
+        #move rect   
+        self.rect.x += dx
+        self.rect.y += dy
+        
+    def update_animation(self):
+        #update animation
+        ANIMATION_COOLDOWN = 100
+        
+        self.image = self.animation_list[self.action][self.frame_index]       
+        if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
+            self.update_time = pygame.time.get_ticks()
+            self.frame_index += 1
+            
+        if self.frame_index >= len(self.animation_list):
+            self.frame_index = 0
+            
+        
+    def draw(self):
+        screen.blit(pygame.transform.flip(self.image,self.flip,False) ,self.rect)
+
+
+moving_left = False
+moving_right = False
+player = Soldier('player',200 ,200 ,2.5,5)
+
+
+run = True 
+while run :
+    
+    screen.fill('grey')
+    player.draw()
+    player.update_animation()
+    player.move(moving_left,moving_right)
     
     for event in pygame.event.get():
         if event.type == QUIT:
-            pygame.quit()
-            sys.exit()
-        if event.type == KEYDOWN:
-            if event.key == K_LEFT:
-                movingleft = True 
-            if event.key == K_RIGHT:
-                movingright = True
-        if event.type == KEYUP:
-            if event.key == K_LEFT:
-                movingleft = False 
-            if event.key == K_RIGHT:
-                movingright = False                 
+            run = False
+        if event.type == pygame.KEYDOWN:
+            if event.key == K_a:
+                moving_left = True
+            if event.key == K_d:
+                moving_right = True
+        if event.type == pygame.KEYUP:
+            if event.key == K_a:
+                moving_left = False
+            if event.key == K_d:
+                moving_right = False
+            
+                            
     pygame.display.update()
-    clock.tick(60)
+    clock.tick(FPS)
+pygame.quit()
+sys.exit()
