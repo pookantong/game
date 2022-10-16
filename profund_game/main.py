@@ -13,7 +13,7 @@ player_image = pygame.image.load('profund_game/player.png')
 player_location = [50,50]
 player_y_momentum = 0
 
-player_rect = pygame.Rect(player_location[0],player_location[1],player_image.get_width()-10,player_image.get_height())
+player_rect = pygame.Rect(player_location[0]-10,player_location[1],player_image.get_width()-10,player_image.get_height())
 test_rect = pygame.Rect(100,100,100,50)
 
 movingleft = False 
@@ -41,7 +41,7 @@ while True :
     if player_rect.colliderect(test_rect):
         pygame.draw.rect(screen,(255,0,0),test_rect)
     else :
-        pygame.draw.rect(screen,(0,0,0),test_rect)
+        pygame.draw.rect(screen,(0,0,255),test_rect)
     
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -52,16 +52,6 @@ while True :
                 movingleft = True 
             if event.key == K_RIGHT:
                 movingright = True
-        if event.type == MOUSEBUTTONDOWN:
-            if event.key == 1:
-                movingleft = True 
-            if event.key == 2:
-                movingright = True
-        if event.type == MOUSEBUTTONUP:
-            if event.key == 1:
-                movingleft = False 
-            if event.key == 2:
-                movingright = False
         if event.type == KEYUP:
             if event.key == K_LEFT:
                 movingleft = False 
