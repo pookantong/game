@@ -1,5 +1,5 @@
 import pygame ,os
-
+from bullet import Bullet
 
 Gravity = 0.5
 Screen_Width = 800
@@ -25,6 +25,7 @@ class Soldier(pygame.sprite.Sprite):
         self.frame_index = 0
         self.action = 0
         self.update_time = pygame.time.get_ticks()
+        self.bullet_group = pygame.sprite.Group()
         
         #Animation
         animation_types = ['idle','run','jump']
@@ -76,6 +77,9 @@ class Soldier(pygame.sprite.Sprite):
         self.rect.x += dx
         self.rect.y += dy
         
+    def shoot(self):
+        bullet = Bullet(self.rect.centerx + (0.7*self.rect.size[0]*self.direction),self.rect.centery, self.direction)
+        self.bullet_group.add(bullet)
         
     def update_animation(self):
         #update animation

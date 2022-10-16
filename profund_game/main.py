@@ -27,9 +27,6 @@ moving_right = False
 shoot = False
 
 
-bullet_group = pygame.sprite.Group()
-
-
 player = Soldier('player',200 ,200 ,2.5,5)
 
 
@@ -41,14 +38,13 @@ while run :
     player.update_animation()
     
     #update and draw group
-    bullet_group.update()
-    bullet_group.draw(screen)
+    player.bullet_group.update()
+    player.bullet_group.draw(screen)
     
     
     if player.alive:
         if shoot:
-            bullet = Bullet(player.rect.centerx + (0.7*player.rect.size[0]*player.direction), player.rect.centery, player.direction)
-            bullet_group.add(bullet)
+            player.shoot()
         if player.in_air:
             player.update_action(2)
         elif moving_left or moving_right:
