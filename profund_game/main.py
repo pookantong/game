@@ -1,7 +1,7 @@
 import pygame, sys,os
 
 clock = pygame.time.Clock()
-FPS = 60
+FPS = 60   
 
 from pygame.locals import *
 pygame.init()
@@ -19,7 +19,7 @@ Gravity = 0.5
 RED = (255,0,0)
 
 bullet_img = pygame.image.load('img/bullet/0.png')
-scale_bullet = 15
+scale_bullet = 3/4
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
         pygame.sprite.Sprite.__init__(self)
@@ -27,10 +27,12 @@ class Bullet(pygame.sprite.Sprite):
         self.image = bullet_img
         self.image = pygame.transform.scale(bullet_img,(int(bullet_img.get_width()/scale_bullet),int(bullet_img.get_height()/scale_bullet)))
         self.rect = self.image.get_rect()
-        self.rect.center = (x,y)
+        self.pos_bull = 10
         self.direction = direction
         if self.direction == -1:
             self.image = pygame.transform.flip(self.image,True,False)
+            self.pos_bull =  self.pos_bull * -1 
+        self.rect.center = (x,y+20)
             
     def update(self):
         #move bullet
@@ -131,7 +133,7 @@ class Soldier(pygame.sprite.Sprite):
         
     def update_animation(self):
         #update animation
-        ANIMATION_COOLDOWN = 100
+        ANIMATION_COOLDOWN = 150
         
         self.image = self.animation_list[self.action][self.frame_index]     
         if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
@@ -167,8 +169,8 @@ shoot = False
 bullet_group = pygame.sprite.Group()
 
 
-player = Soldier('player',200 ,200 ,2.5,5)
-enemy = Soldier('player',500 ,250 ,2.5,5)
+player = Soldier('player',200 ,200 ,1,5)
+enemy = Soldier('player',500 ,500 ,1,5)
 
 
 run = True 
