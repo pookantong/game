@@ -17,6 +17,9 @@ Gravity = 0.5
 
 
 RED = (255,0,0)
+GREEN = (0,255,0)
+BLACK = (0,0,0)
+
 
 bullet_img = pygame.image.load('img/bullet/0.png')
 scale_bullet = 3/4
@@ -45,6 +48,7 @@ class Bullet(pygame.sprite.Sprite):
             if player.alive:
                 player.health -= 5
                 self.kill()
+        #test enemy
         if pygame.sprite.spritecollide(enemy, bullet_group, False):
             if enemy.alive:
                 enemy.health -= 25
@@ -64,13 +68,15 @@ class Soldier(pygame.sprite.Sprite):
         self.flip = False
         self.shoot_cooldown = 0
         self.health = 100
+        self.max_health = self.health
+        self.health = 100
         self.animation_list = []
         self.frame_index = 0
         self.action = 0
         self.update_time = pygame.time.get_ticks()
         
         #Animation
-        animation_types = ['idle','run','jump']
+        animation_types = ['idle','run','jump','death']
         for animation in animation_types:
             temp_list = []
             num_of_frames = len(os.listdir(f'img/{self.char_type}/{animation}'))
@@ -86,6 +92,7 @@ class Soldier(pygame.sprite.Sprite):
         
     def update(self):
         self.update_animation()
+        self.check_alive()
         #update cooldown
         if self.shoot_cooldown > 0:
             self.shoot_cooldown -= 1
@@ -140,7 +147,10 @@ class Soldier(pygame.sprite.Sprite):
             self.update_time = pygame.time.get_ticks()
             self.frame_index += 1
         if self.frame_index >= len(self.animation_list[self.action]):
-            self.frame_index = 0
+            if self.action == 3:
+                self.frame_index = len(self.animation_list[self.action])-1
+            else:
+                self.frame_index = 0
             
             
     def update_action(self, new_action):
@@ -150,6 +160,12 @@ class Soldier(pygame.sprite.Sprite):
             self.frame_index = 0
             self.update_time = pygame.time.get_ticks()
         
+    def check_alive(self):
+        if self.health <= 0:
+            self.health = 0
+            self.speed = 0
+            self.alive = False
+            self.update_action(3)
             
         
     def draw(self):
@@ -159,6 +175,21 @@ class Soldier(pygame.sprite.Sprite):
 def draw_bg():
     screen.fill('grey')
     pygame.draw.line(screen, RED, (0,300),(Screen_Width,300))
+
+class Health_Bar():
+    def __init__(self, x, y, health, max_health):
+        self.x = x
+        self.y = y
+        self.health = health
+        self.max_health = max_health
+        
+    def draw(self, health):
+        
+        self.health = health
+        ratio = self.health / self.max_health
+        pygame.draw.rect(screen, BLACK, (self.x-2, self.y-2, 154, 24))
+        pygame.draw.rect(screen, RED, (self.x, self.y, 150, 20))
+        pygame.draw.rect(screen, GREEN, (self.x, self.y, 150 * ratio, 20))
 
 
 moving_left = False
@@ -170,16 +201,21 @@ bullet_group = pygame.sprite.Group()
 
 
 player = Soldier('player',200 ,200 ,1,5)
-enemy = Soldier('player',500 ,500 ,1,5)
+health_bar = Health_Bar(10, 10, player.health, player.health)
+
+enemy = Soldier('player',500 ,250 ,1,5)
 
 
 run = True 
 while run :
     
     draw_bg()
+    health_bar.draw(player.health)
+    
     player.draw()
     enemy.draw()
     player.update()
+    enemy.update()
     
     #update and draw group
     bullet_group.update()
