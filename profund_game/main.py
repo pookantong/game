@@ -49,10 +49,11 @@ class Bullet(pygame.sprite.Sprite):
                 player.health -= 5
                 self.kill()
         #test enemy
-        if pygame.sprite.spritecollide(enemy, bullet_group, False):
-            if enemy.alive:
-                enemy.health -= 25
-                self.kill()
+        for enemy in enemy_group:
+            if pygame.sprite.spritecollide(enemy, bullet_group, False):
+                if enemy.alive:
+                    enemy.health -= 25
+                    self.kill()
             
 class Soldier(pygame.sprite.Sprite):
     
@@ -137,6 +138,16 @@ class Soldier(pygame.sprite.Sprite):
             self.shoot_cooldown = 20
             bullet = Bullet(self.rect.centerx + (0.7*self.rect.size[0]*self.direction),self.rect.centery, self.direction)
             bullet_group.add(bullet)
+            
+    def ai(self):
+        if self.alive and player.alive:
+            if self.direction == 1:
+                ai_moving_right = True
+            else:
+                ai_moving_right = False
+            ai_moving_left = not ai_moving_right
+            self.move(ai_moving_left, ai_moving_right)
+            
         
     def update_animation(self):
         #update animation
@@ -196,15 +207,17 @@ moving_left = False
 moving_right = False
 shoot = False
 
-
+enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 
 
-player = Soldier('player',200 ,200 ,1,5)
+player = Soldier('player',200 ,200 ,1 ,5)
 health_bar = Health_Bar(10, 10, player.health, player.health)
 
-enemy = Soldier('player',500 ,250 ,1,5)
-
+enemy = Soldier('player',400 ,250 ,1,5)
+enemy2 = Soldier('player',600 ,250 ,1,5)
+enemy_group.add(enemy)
+enemy_group.add(enemy2)
 
 run = True 
 while run :
@@ -213,9 +226,10 @@ while run :
     health_bar.draw(player.health)
     
     player.draw()
-    enemy.draw()
     player.update()
-    enemy.update()
+    for enemy in enemy_group:
+        enemy.draw()
+        enemy.update()
     
     #update and draw group
     bullet_group.update()
