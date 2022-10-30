@@ -1,4 +1,4 @@
-import pygame, sys,os
+import pygame, sys, os, random
 
 clock = pygame.time.Clock()
 FPS = 60   
@@ -14,6 +14,7 @@ pygame.display.set_caption('The Soldier')
 
 
 Gravity = 0.5
+TILE_SIZE = 40
 
 
 RED = (255,0,0)
@@ -75,6 +76,10 @@ class Soldier(pygame.sprite.Sprite):
         self.frame_index = 0
         self.action = 0
         self.update_time = pygame.time.get_ticks()
+        self.move_counter = 0
+        self.vision = pygame.Rect(0, 0, 200, 20)
+        self.idling = False
+        self.idling_counter = 0
         
         #Animation
         animation_types = ['idle','run','jump','death']
@@ -129,6 +134,10 @@ class Soldier(pygame.sprite.Sprite):
             dy = 300 - self.rect.bottom
             self.in_air = False
         
+        #check_collision_walls
+        if self.rect.left + dx < 0 or self.rect.right + dx > Screen_Width:
+            self.direction * self.speed
+        
         #move rect   
         self.rect.x += dx
         self.rect.y += dy
@@ -141,12 +150,34 @@ class Soldier(pygame.sprite.Sprite):
             
     def ai(self):
         if self.alive and player.alive:
-            if self.direction == 1:
-                ai_moving_right = True
-            else:
-                ai_moving_right = False
-            ai_moving_left = not ai_moving_right
-            self.move(ai_moving_left, ai_moving_right)
+            if self.idling == False and random.randint(1, 200) == 1:
+                self.update_action(0)
+                self.idling = True
+                self.idling_counter = 50
+                
+            if self.vision.colliderect(player.rect):
+                self.update_action(0)
+                self.shoot() 
+            else: 
+                if self.idling == False:
+                    if self.direction == 1:
+                        ai_moving_right = True
+                    else:
+                        ai_moving_right = False
+                    ai_moving_left = not ai_moving_right
+                    self.move(ai_moving_left, ai_moving_right)
+                    self.update_action(1)
+                    self.move_counter += 1
+                    self.vision.center = (self.rect.centerx + 75 * self.direction, self.rect.centery)
+                    
+                    if self.move_counter > TILE_SIZE:
+                        self.direction *= -1
+                        self.move_counter *= -1
+                else:
+                    self.idling_counter -= 1
+                    if self.idling_counter <= 0:
+                        self.idling = False
+            
             
         
     def update_animation(self):
@@ -214,8 +245,8 @@ bullet_group = pygame.sprite.Group()
 player = Soldier('player',200 ,200 ,1 ,5)
 health_bar = Health_Bar(10, 10, player.health, player.health)
 
-enemy = Soldier('player',400 ,250 ,1,5)
-enemy2 = Soldier('player',600 ,250 ,1,5)
+enemy = Soldier('player',400 ,250 ,1 ,2 )
+enemy2 = Soldier('player',600 ,250 ,1 ,2)
 enemy_group.add(enemy)
 enemy_group.add(enemy2)
 
@@ -228,6 +259,7 @@ while run :
     player.draw()
     player.update()
     for enemy in enemy_group:
+        enemy.ai()
         enemy.draw()
         enemy.update()
     
