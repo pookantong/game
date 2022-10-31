@@ -20,8 +20,8 @@ TILE_SIZE = 40
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLACK = (0,0,0)
-Health_img = pygame.image.load('img/bullet/0.png')
-Damage_img = pygame.image.load('img/bullet/0.png')
+Health_img = pygame.image.load('img/Item/0.png')
+Damage_img = pygame.image.load('img/Item/1.png')
 item_drops = {
     'Health' : Health_img,
     'Damage' : Damage_img,
@@ -34,12 +34,14 @@ class Item_Drop(pygame.sprite.Sprite):
         self.image = item_drops[self.item_type]
         self.rect = self.image.get_rect()
         for enemy in enemy_group:
-            self.rect.midtop = (enemy.x,enemy.y) 
+            self.rect.midtop = (x,y) 
+    def draw(self):
+        screen.blit(self.image,self.rect)
     
 
 bullet_img = pygame.image.load('img/bullet/0.png')
 scale_bullet = 3/4
-damage = 25
+damage = 100
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
         pygame.sprite.Sprite.__init__(self)
@@ -97,6 +99,7 @@ class Soldier(pygame.sprite.Sprite):
         self.vision = pygame.Rect(0, 0, 200, 20)
         self.idling = False
         self.idling_counter = 0
+        self.ran = random.choice(['Health','Damage'])
         
         #Animation
         animation_types = ['idle','run','jump','death']
@@ -204,10 +207,12 @@ class Soldier(pygame.sprite.Sprite):
         self.image = self.animation_list[self.action][self.frame_index]     
         if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
             self.update_time = pygame.time.get_ticks()
-            self.frame_index += 1
+            if self.action != 3 or self.frame_index < len(self.animation_list[self.action])-1:
+                self.frame_index += 1
         if self.frame_index >= len(self.animation_list[self.action]):
             if self.action == 3:
-                self.frame_index = len(self.animation_list[self.action])-1
+                itemdrop = Item_Drop(self.ran,self.rect.centerx,self.rect.centery)
+                itemdrop.draw()
             else:
                 self.frame_index = 0
             
@@ -257,7 +262,6 @@ shoot = False
 
 enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
-item_drops = pygame.sprite.Group()
 
 
 player = Soldier('player',200 ,200 ,1 ,5)
