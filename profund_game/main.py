@@ -1,5 +1,4 @@
-from queue import Empty
-import pygame, sys, os, random
+import pygame, sys, os, random ,csv
 
 clock = pygame.time.Clock()
 FPS = 60   
@@ -15,7 +14,11 @@ pygame.display.set_caption('The Soldier')
 
 
 Gravity = 0.5
-TILE_SIZE = 40
+ROWS = 16
+COLS = 150
+TILE_SIZE = Screen_Height // ROWS
+TILE_TYPES = 21
+level = 1
 
 
 RED = (255,0,0)
@@ -296,6 +299,19 @@ enemy = Soldier('player',400 ,250 ,1 ,2 ,'enemy')
 enemy2 = Soldier('player',600 ,250 ,1 ,2 ,'enemy')
 enemy_group.add(enemy)
 enemy_group.add(enemy2)
+
+
+world_data = []
+for row in range(ROWS):
+    r = [-1] * COLS
+    world_data.append(r)
+
+with open(f'level{level}_data.csv', newline = '') as csvfile:
+    reader = csv.reader(csvfile, delimiter=',')
+    for x, row in enumerate(reader):
+        for y, tile in enumerate(row):
+            world_data[x][y] = int (tile)
+print(world_data)
 
 run = True 
 while run :

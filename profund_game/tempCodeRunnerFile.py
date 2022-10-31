@@ -1,1 +1,0 @@
-shoot_cooldown
