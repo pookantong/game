@@ -1,3 +1,4 @@
+from queue import Empty
 import pygame, sys, os, random
 
 clock = pygame.time.Clock()
@@ -22,9 +23,11 @@ GREEN = (0,255,0)
 BLACK = (0,0,0)
 Health_img = pygame.image.load('img/Item/0.png')
 Damage_img = pygame.image.load('img/Item/1.png')
+Empty_img = pygame.image.load('img/Item/2.png')
 item_drops = {
     'Health' : Health_img,
     'Damage' : Damage_img,
+    'Empty' : Empty_img,
 }
 
 class Item_Drop(pygame.sprite.Sprite):
@@ -33,10 +36,27 @@ class Item_Drop(pygame.sprite.Sprite):
         self.item_type = item_type
         self.image = item_drops[self.item_type]
         self.rect = self.image.get_rect()
-        for enemy in enemy_group:
-            self.rect.midtop = (x,y) 
+        self.rect.midtop = (x,y) 
+            
     def draw(self):
         screen.blit(self.image,self.rect)
+        
+    def update(self):
+        #check if the player has picked up the box
+        if pygame.sprite.collide_rect(self, player):
+            #check what kind of box it was
+            if self.item_type == 'Health':
+                player.health += 25
+                if player.health > player.max_health:
+                    player.health = player.max_health
+            elif self.item_type == 'Damage':
+                player.damage += 5
+            elif self.item_type == 'Empty':
+                self.kill()
+                enemy.kill()
+            #delete the item box
+            self.kill()
+            enemy.kill()
     
 
 bullet_img = pygame.image.load('img/bullet/0.png')
@@ -51,7 +71,6 @@ class Bullet(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.pos_bull = 10
         self.direction = direction
-        self.damage = damage
         if self.direction == -1:
             self.image = pygame.transform.flip(self.image,True,False)
             self.pos_bull =  self.pos_bull * -1 
@@ -72,14 +91,16 @@ class Bullet(pygame.sprite.Sprite):
         for enemy in enemy_group:
             if pygame.sprite.spritecollide(enemy, bullet_group, False):
                 if enemy.alive:
-                    enemy.health -= self.damage
+                    enemy.health -= player.damage
                     self.kill()
+                    
             
 class Soldier(pygame.sprite.Sprite):
     
-    def __init__(self, char_type, x, y,scale,speed ):
+    def __init__(self, char_type, x, y, scale, speed, type):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
+        self.type = type
         self.char_type = char_type
         self.speed = speed
         self.direction = 1
@@ -88,6 +109,7 @@ class Soldier(pygame.sprite.Sprite):
         self.in_air = True
         self.flip = False
         self.shoot_cooldown = 0
+        self.damage = damage
         self.health = 100
         self.max_health = self.health
         self.health = 100
@@ -99,7 +121,7 @@ class Soldier(pygame.sprite.Sprite):
         self.vision = pygame.Rect(0, 0, 200, 20)
         self.idling = False
         self.idling_counter = 0
-        self.ran = random.choice(['Health','Damage'])
+        self.ran = random.choice(['Health','Damage','Empty','Empty'])
         
         #Animation
         animation_types = ['idle','run','jump','death']
@@ -209,10 +231,13 @@ class Soldier(pygame.sprite.Sprite):
             self.update_time = pygame.time.get_ticks()
             if self.action != 3 or self.frame_index < len(self.animation_list[self.action])-1:
                 self.frame_index += 1
-        if self.frame_index >= len(self.animation_list[self.action]):
-            if self.action == 3:
+        if self.frame_index >= len(self.animation_list[self.action])-2:
+            if self.action == 3 and self.type != 'player':
                 itemdrop = Item_Drop(self.ran,self.rect.centerx,self.rect.centery)
                 itemdrop.draw()
+                itemdrop.update()
+            elif self.action == 3 and self.type == 'player':
+                self.frame_index = len(self.animation_list[self.action]) - 1
             else:
                 self.frame_index = 0
             
@@ -264,11 +289,11 @@ enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 
 
-player = Soldier('player',200 ,200 ,1 ,5)
+player = Soldier('player',200 ,200 ,1 ,5 ,'player')
 health_bar = Health_Bar(10, 10, player.health, player.health)
 
-enemy = Soldier('player',400 ,250 ,1 ,2 )
-enemy2 = Soldier('player',600 ,250 ,1 ,2)
+enemy = Soldier('player',400 ,250 ,1 ,2 ,'enemy')
+enemy2 = Soldier('player',600 ,250 ,1 ,2 ,'enemy')
 enemy_group.add(enemy)
 enemy_group.add(enemy2)
 
@@ -288,6 +313,8 @@ while run :
     #update and draw group
     bullet_group.update()
     bullet_group.draw(screen)
+    
+    
     
     
     if player.alive:
