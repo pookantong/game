@@ -7,7 +7,7 @@ from pygame.locals import *
 pygame.init()
 
 Screen_Width = 800
-Screen_Height = 800*0.8
+Screen_Height = 800*0.8 
 
 screen = pygame.display.set_mode((Screen_Width,Screen_Height))
 pygame.display.set_caption('The Soldier')
@@ -20,10 +20,26 @@ TILE_SIZE = 40
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLACK = (0,0,0)
+Health_img = pygame.image.load('img/bullet/0.png')
+Damage_img = pygame.image.load('img/bullet/0.png')
+item_drops = {
+    'Health' : Health_img,
+    'Damage' : Damage_img,
+}
 
+class Item_Drop(pygame.sprite.Sprite):
+    def __init__(self, item_type, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.item_type = item_type
+        self.image = item_drops[self.item_type]
+        self.rect = self.image.get_rect()
+        for enemy in enemy_group:
+            self.rect.midtop = (enemy.x,enemy.y) 
+    
 
 bullet_img = pygame.image.load('img/bullet/0.png')
 scale_bullet = 3/4
+damage = 25
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
         pygame.sprite.Sprite.__init__(self)
@@ -33,6 +49,7 @@ class Bullet(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.pos_bull = 10
         self.direction = direction
+        self.damage = damage
         if self.direction == -1:
             self.image = pygame.transform.flip(self.image,True,False)
             self.pos_bull =  self.pos_bull * -1 
@@ -53,7 +70,7 @@ class Bullet(pygame.sprite.Sprite):
         for enemy in enemy_group:
             if pygame.sprite.spritecollide(enemy, bullet_group, False):
                 if enemy.alive:
-                    enemy.health -= 25
+                    enemy.health -= self.damage
                     self.kill()
             
 class Soldier(pygame.sprite.Sprite):
@@ -240,6 +257,7 @@ shoot = False
 
 enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
+item_drops = pygame.sprite.Group()
 
 
 player = Soldier('player',200 ,200 ,1 ,5)
