@@ -1,1 +1,1 @@
-kill
+shoot_cooldown

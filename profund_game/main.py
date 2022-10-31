@@ -61,7 +61,7 @@ class Item_Drop(pygame.sprite.Sprite):
 
 bullet_img = pygame.image.load('img/bullet/0.png')
 scale_bullet = 3/4
-damage = 100
+damage = 25
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
         pygame.sprite.Sprite.__init__(self)
@@ -118,7 +118,7 @@ class Soldier(pygame.sprite.Sprite):
         self.action = 0
         self.update_time = pygame.time.get_ticks()
         self.move_counter = 0
-        self.vision = pygame.Rect(0, 0, 200, 20)
+        self.vision = pygame.Rect(0, 0, 400, 20)
         self.idling = False
         self.idling_counter = 0
         self.ran = random.choice(['Health','Damage','Empty','Empty'])
