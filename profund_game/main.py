@@ -6,8 +6,8 @@ FPS = 60
 from pygame.locals import *
 pygame.init()
 
-Screen_Width = 800
-Screen_Height = 800*0.8 
+Screen_Width = 1280
+Screen_Height = 720 
 
 screen = pygame.display.set_mode((Screen_Width,Screen_Height))
 pygame.display.set_caption('The Soldier')
@@ -63,14 +63,14 @@ class Item_Drop(pygame.sprite.Sprite):
     
 
 bullet_img = pygame.image.load('img/bullet/0.png')
-scale_bullet = 3/4
+scale_bullet = 0.8
 damage = 25
 class Bullet(pygame.sprite.Sprite):
     def __init__(self, x, y, direction):
         pygame.sprite.Sprite.__init__(self)
         self.speed = 10
         self.image = bullet_img
-        self.image = pygame.transform.scale(bullet_img,(int(bullet_img.get_width()/scale_bullet),int(bullet_img.get_height()/scale_bullet)))
+        self.image = pygame.transform.scale(bullet_img,(int(bullet_img.get_width()*scale_bullet),int(bullet_img.get_height()*scale_bullet)))
         self.rect = self.image.get_rect()
         self.pos_bull = 10
         self.direction = direction
@@ -140,6 +140,8 @@ class Soldier(pygame.sprite.Sprite):
         self.image = self.animation_list[self.action][self.frame_index]
         self.rect = self.image.get_rect()
         self.rect.center = (x,y)
+        self.width = self.image.get_width()
+        self.height = self.image.get_height()
         
     def update(self):
         self.update_animation()
@@ -175,9 +177,18 @@ class Soldier(pygame.sprite.Sprite):
         dy += self.vel_y
         
         #check_collision_floor
-        if self.rect.bottom + dy > 300:
-            dy = 300 - self.rect.bottom
-            self.in_air = False
+        for tile in world.obstacle_list:
+            #check_collision_x
+            if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
+                  dx = 0
+            if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
+                  if self.vel_y < 0:
+                      self.vel_y = 0
+                      dy = tile[1].bottom - self.rect.top
+                  elif self.vel_y >= 0:
+                      self.vel_y = 0
+                      self.in_air = False
+                      dy = tile[1].top - self.rect.bottom
         
         #check_collision_walls
         if self.rect.left + dx < 0 or self.rect.right + dx > Screen_Width:
@@ -261,7 +272,76 @@ class Soldier(pygame.sprite.Sprite):
             
         
     def draw(self):
-        screen.blit(pygame.transform.flip(self.image,self.flip,False) ,self.rect)          
+        screen.blit(pygame.transform.flip(self.image,self.flip,False) ,self.rect)
+        
+img_list = []
+for x in range(TILE_TYPES):
+    img = pygame.image.load(f'img/tile/{x}.png')
+    img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE)) 
+    img_list.append(img)        
+class World():
+    def __init__(self):
+        self.obstacle_list = []
+        
+    def process_data(self, data):
+        for y, row in enumerate(data):
+            for x, tile in enumerate(row):
+                if tile >= 0:
+                    img = img_list[tile]
+                    img_rect = img.get_rect()
+                    img_rect.x = x * TILE_SIZE
+                    img_rect.y = y * TILE_SIZE
+                    tile_data = (img, img_rect)
+                    if tile >= 0 and tile <= 8:
+                        self.obstacle_list.append(tile_data)
+                    elif tile >= 9 and tile <=10:
+                        water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
+                        water_group.add(water)
+                    elif tile >= 11 and tile <= 14:
+                        decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
+                        decoration_group.add(decoration)
+                    elif tile == 15:
+                        player = Soldier('player',x * TILE_SIZE ,y * TILE_SIZE ,0.8 ,5 ,'player')
+                        health_bar = Health_Bar(10, 10, player.health, player.health)
+                    elif tile == 16:
+                        enemy = Soldier('player',x * TILE_SIZE ,y * TILE_SIZE ,0.8 ,2 ,'enemy')
+                        enemy_group.add(enemy)
+                    elif tile == 20:
+                        exits = Exit(img, x * TILE_SIZE, y * TILE_SIZE)
+                        exit_group.add(exits)
+        return player, health_bar
+    
+    def draw(self):
+        for tile in self.obstacle_list:
+            screen.blit(tile[0], tile[1])
+            
+            
+class Decoration(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+
+            
+            
+class Water(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+        
+        
+class Exit(pygame.sprite.Sprite):
+    def __init__(self, img, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = img
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))                      
+                        
+                     
+              
             
 
 def draw_bg():
@@ -290,15 +370,10 @@ shoot = False
 
 enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
+decoration_group = pygame.sprite.Group()
+water_group = pygame.sprite.Group()
+exit_group = pygame.sprite.Group()
 
-
-player = Soldier('player',200 ,200 ,1 ,5 ,'player')
-health_bar = Health_Bar(10, 10, player.health, player.health)
-
-enemy = Soldier('player',400 ,250 ,1 ,2 ,'enemy')
-enemy2 = Soldier('player',600 ,250 ,1 ,2 ,'enemy')
-enemy_group.add(enemy)
-enemy_group.add(enemy2)
 
 
 world_data = []
@@ -311,16 +386,19 @@ with open(f'level{level}_data.csv', newline = '') as csvfile:
     for x, row in enumerate(reader):
         for y, tile in enumerate(row):
             world_data[x][y] = int (tile)
-print(world_data)
+world = World()
+player, health_bar = world.process_data(world_data)
 
 run = True 
 while run :
     
     draw_bg()
+    world.draw()
     health_bar.draw(player.health)
     
     player.draw()
     player.update()
+    
     for enemy in enemy_group:
         enemy.ai()
         enemy.draw()
@@ -328,7 +406,13 @@ while run :
     
     #update and draw group
     bullet_group.update()
+    decoration_group.update()
+    water_group.update()
+    exit_group.update()
     bullet_group.draw(screen)
+    decoration_group.draw(screen)
+    water_group.draw(screen)
+    exit_group.draw(screen)
     
     
     
