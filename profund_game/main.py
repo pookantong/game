@@ -85,6 +85,12 @@ class Bullet(pygame.sprite.Sprite):
         #out of screen
         if self.rect.right < 0 or self.rect.left > Screen_Width:
             self.kill()
+        
+        #check_collision_with_level
+        for tile in world.obstacle_list:
+            if tile[1].colliderect(self.rect):
+                self.kill()
+        
         #check collision with characters
         if pygame.sprite.spritecollide(player, bullet_group, False):
             if player.alive:
@@ -121,7 +127,7 @@ class Soldier(pygame.sprite.Sprite):
         self.action = 0
         self.update_time = pygame.time.get_ticks()
         self.move_counter = 0
-        self.vision = pygame.Rect(0, 0, 400, 20)
+        self.vision = pygame.Rect(0, 0, 250, 10)
         self.idling = False
         self.idling_counter = 0
         self.ran = random.choice(['Health','Damage','Empty','Empty'])
@@ -224,7 +230,7 @@ class Soldier(pygame.sprite.Sprite):
                     self.move(ai_moving_left, ai_moving_right)
                     self.update_action(1)
                     self.move_counter += 1
-                    self.vision.center = (self.rect.centerx + 75 * self.direction, self.rect.centery)
+                    self.vision.center = (self.rect.centerx + 125 * self.direction, self.rect.centery)
                     
                     if self.move_counter > TILE_SIZE:
                         self.direction *= -1
@@ -346,7 +352,6 @@ class Exit(pygame.sprite.Sprite):
 
 def draw_bg():
     screen.fill('grey')
-    pygame.draw.line(screen, RED, (0,300),(Screen_Width,300))
 
 class Health_Bar():
     def __init__(self, x, y, health, max_health):
