@@ -7,14 +7,14 @@ from pygame.locals import *
 pygame.init()
 
 Screen_Width = 1280
-Screen_Height = 720 
+Screen_Height = Screen_Width * 0.5625 
 
 screen = pygame.display.set_mode((Screen_Width,Screen_Height))
 pygame.display.set_caption('The Soldier')
 
 
 Gravity = 0.5
-SCROLL_THRESH = 200
+SCROLL_THRESH = 250
 ROWS = 16
 COLS = 150
 TILE_SIZE = Screen_Height // ROWS
@@ -80,11 +80,11 @@ class Bullet(pygame.sprite.Sprite):
         if self.direction == -1:
             self.image = pygame.transform.flip(self.image,True,False)
             self.pos_bull =  self.pos_bull * -1 
-        self.rect.center = (x,y+20)
+        self.rect.center = (x,y)
             
     def update(self):
         #move bullet
-        self.rect.x += (self.direction*self.speed)
+        self.rect.x += (self.direction*self.speed) + screen_scroll
         #out of screen
         if self.rect.right < 0 or self.rect.left > Screen_Width:
             self.kill()
@@ -121,6 +121,7 @@ class Soldier(pygame.sprite.Sprite):
         self.in_air = True
         self.flip = False
         self.shoot_cooldown = 0
+        self.shoot_y = 0
         self.damage = damage
         self.health = 100
         self.max_health = self.health
@@ -160,8 +161,8 @@ class Soldier(pygame.sprite.Sprite):
             self.shoot_cooldown -= 1
         
     def move(self, moving_left, moving_right):
-        
         #reset movement
+        screen_scroll = 0
         dx = 0
         dy = 0
         
@@ -185,7 +186,7 @@ class Soldier(pygame.sprite.Sprite):
             self.vel_y 
         dy += self.vel_y
         
-        #check_collision_floor
+        #check_collision
         for tile in world.obstacle_list:
             #check_collision_x
             if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
@@ -199,20 +200,30 @@ class Soldier(pygame.sprite.Sprite):
                       self.in_air = False
                       dy = tile[1].top - self.rect.bottom
         
-        #check_collision_walls
-        if self.rect.left + dx < 0 or self.rect.right + dx > Screen_Width:
-            self.direction * self.speed
-        
+    
         #move rect   
         self.rect.x += dx
         self.rect.y += dy
         
         
+        if self.char_type == 'player':
+            if self.rect.right > Screen_Width - SCROLL_THRESH or self.rect.left < SCROLL_THRESH:
+                self.rect.x -= dx
+                screen_scroll = -dx
+        
+            return screen_scroll
+        
+        
         
     def shoot(self):
+        if self.char_type == 'player':
+            self.shoot_y = 0
+        elif self.char_type == 'enemy':
+            self.shoot_y = 20
+        
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = 20
-            bullet = Bullet(self.rect.centerx + (0.7*self.rect.size[0]*self.direction),self.rect.centery, self.direction)
+            bullet = Bullet(self.rect.centerx + (0.8*self.rect.size[0]*self.direction),self.rect.centery + self.shoot_y, self.direction)
             bullet_group.add(bullet)
             
     def ai(self):
@@ -244,12 +255,14 @@ class Soldier(pygame.sprite.Sprite):
                     self.idling_counter -= 1
                     if self.idling_counter <= 0:
                         self.idling = False
+                        
+        self.rect.x += screen_scroll
             
             
         
     def update_animation(self):
         #update animation
-        ANIMATION_COOLDOWN = 150
+        ANIMATION_COOLDOWN = 100
         
         self.image = self.animation_list[self.action][self.frame_index]     
         if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
@@ -312,10 +325,10 @@ class World():
                         decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
                         decoration_group.add(decoration)
                     elif tile == 15:
-                        player = Soldier('player',x * TILE_SIZE ,y * TILE_SIZE ,0.8 ,5 ,'player')
+                        player = Soldier('player',x * TILE_SIZE ,y * TILE_SIZE ,2 ,7 ,'player')
                         health_bar = Health_Bar(10, 10, player.health, player.health)
                     elif tile == 16:
-                        enemy = Soldier('player',x * TILE_SIZE ,y * TILE_SIZE ,0.8 ,2 ,'enemy')
+                        enemy = Soldier('enemy',x * TILE_SIZE ,y * TILE_SIZE ,0.8 ,2 ,'enemy')
                         enemy_group.add(enemy)
                     elif tile == 20:
                         exits = Exit(img, x * TILE_SIZE, y * TILE_SIZE)
@@ -324,6 +337,7 @@ class World():
     
     def draw(self):
         for tile in self.obstacle_list:
+            tile[1][0] += screen_scroll
             screen.blit(tile[0], tile[1])
             
             
@@ -333,6 +347,9 @@ class Decoration(pygame.sprite.Sprite):
         self.image = img
         self.rect = self.image.get_rect()
         self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+        
+    def update(self):
+        self.rect.x += screen_scroll
 
             
             
@@ -343,6 +360,9 @@ class Water(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
         
+    def update(self):
+        self.rect.x += screen_scroll
+        
         
 class Exit(pygame.sprite.Sprite):
     def __init__(self, img, x, y):
@@ -351,19 +371,23 @@ class Exit(pygame.sprite.Sprite):
         self.rect = self.image.get_rect()
         self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))                      
                         
-                     
+    def update(self):
+        self.rect.x += screen_scroll                 
               
             
 pine1_img = pygame.image.load('img/background/pine1.png')
 pine2_img = pygame.image.load('img/background/pine2.png')
 mountain_img = pygame.image.load('img/background/mountain.png')
 sky_img = pygame.image.load('img/background/sky_cloud.png')
+sky_img = pygame.transform.scale(sky_img,(int(sky_img.get_width()*2),int(sky_img.get_height()*2)))
 def draw_bg():
     screen.fill('grey')
     screen.blit(sky_img, (0, 0))
-    screen.blit(mountain_img, (0, Screen_Height - mountain_img.get_height() - 300))
-    screen.blit(pine1_img, (0, Screen_Height - pine1_img.get_height() - 150))
-    screen.blit(pine2_img, (0, Screen_Height - pine2_img.get_height()))
+    width = mountain_img.get_width()
+    for x in range(5):
+        screen.blit(mountain_img, ((x * width) - bg_scroll, Screen_Height - mountain_img.get_height() - 300))
+        screen.blit(pine1_img, ((x * width) - bg_scroll, Screen_Height - pine1_img.get_height() - 150))
+        screen.blit(pine2_img, ((x * width) - bg_scroll, Screen_Height - pine2_img.get_height()))
 
 class Health_Bar():
     def __init__(self, x, y, health, max_health):
@@ -379,6 +403,7 @@ class Health_Bar():
         pygame.draw.rect(screen, BLACK, (self.x-2, self.y-2, 154, 24))
         pygame.draw.rect(screen, RED, (self.x, self.y, 150, 20))
         pygame.draw.rect(screen, GREEN, (self.x, self.y, 150 * ratio, 20))
+        
 
 
 moving_left = False
@@ -444,7 +469,8 @@ while run :
         else:
             player.update_action(0)
             
-    player.move(moving_left,moving_right) 
+    screen_scroll = player.move(moving_left,moving_right)
+    bg_scroll -= screen_scroll 
     
     for event in pygame.event.get():
         if event.type == QUIT:
