@@ -1,4 +1,4 @@
-import pygame, sys, os, random ,csv
+import pygame, sys, os, random ,csv, button
 
 clock = pygame.time.Clock()
 FPS = 60   
@@ -22,6 +22,7 @@ TILE_TYPES = 21
 screen_scroll = 0
 bg_scroll = 0
 level = 1
+start_game = False
 
 
 RED = (255,0,0)
@@ -385,6 +386,11 @@ class Exit(pygame.sprite.Sprite):
     def update(self):
         self.rect.x += screen_scroll                 
               
+
+start_img = pygame.image.load('img/start_btn.png').convert_alpha()
+exit_img = pygame.image.load('img/exit_btn.png').convert_alpha()
+
+
             
 pine1_img = pygame.image.load('img/background/pine1.png').convert_alpha()
 pine2_img = pygame.image.load('img/background/pine2.png').convert_alpha()
@@ -422,6 +428,11 @@ moving_left = False
 moving_right = False
 shoot = False
 
+
+start_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, start_img, 1)
+exit_button = button.Button(Screen_Width //  2 - 110, Screen_Height // 2 + 50, exit_img, 1)
+
+
 enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 decoration_group = pygame.sprite.Group()
@@ -446,43 +457,47 @@ player, health_bar = world.process_data(world_data)
 run = True 
 while run :
     
-    draw_bg()
-    world.draw()
-    health_bar.draw(player.health)
-    
-    player.draw()
-    player.update()
-    
-    for enemy in enemy_group:
-        enemy.ai()
-        enemy.draw()
-        enemy.update()
-    
-    #update and draw group
-    bullet_group.update()
-    decoration_group.update()
-    water_group.update()
-    exit_group.update()
-    bullet_group.draw(screen)
-    decoration_group.draw(screen)
-    water_group.draw(screen)
-    exit_group.draw(screen)
-    
-    
-    
-    
-    if player.alive:
-        if shoot:
-            player.shoot()
-        if player.in_air:
-            player.update_action(2)
-        elif moving_left or moving_right:
-            player.update_action(1)
-        else:
-            player.update_action(0)
-            
-    screen_scroll = player.move(moving_left,moving_right)
-    bg_scroll -= screen_scroll 
+    if start_game == False:
+        screen.fill('GREY')
+        start_button.draw(screen)
+        exit_button.draw(screen)
+    else:
+        draw_bg()
+        world.draw()
+        health_bar.draw(player.health)
+        
+        player.draw()
+        player.update()
+        
+        for enemy in enemy_group:
+            enemy.ai()
+            enemy.draw()
+            enemy.update()
+        
+        #update and draw group
+        bullet_group.update()
+        decoration_group.update()
+        water_group.update()
+        exit_group.update()
+        bullet_group.draw(screen)
+        decoration_group.draw(screen)
+        water_group.draw(screen)
+        exit_group.draw(screen)
+        
+        
+        #update action
+        if player.alive:
+            if shoot:
+                player.shoot()
+            if player.in_air:
+                player.update_action(2)
+            elif moving_left or moving_right:
+                player.update_action(1)
+            else:
+                player.update_action(0)
+                
+        screen_scroll = player.move(moving_left,moving_right)
+        bg_scroll -= screen_scroll 
     
     for event in pygame.event.get():
         if event.type == QUIT:
