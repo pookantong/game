@@ -272,7 +272,7 @@ class Soldier(pygame.sprite.Sprite):
         
     def update_animation(self):
         #update animation
-        ANIMATION_COOLDOWN = 100
+        ANIMATION_COOLDOWN = 150
         
         self.image = self.animation_list[self.action][self.frame_index]     
         if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
@@ -336,7 +336,7 @@ class World():
                         decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
                         decoration_group.add(decoration)
                     elif tile == 15:
-                        player = Soldier('player',x * TILE_SIZE ,y * TILE_SIZE ,2 ,7 ,'player')
+                        player = Soldier('player',x * TILE_SIZE ,y * TILE_SIZE ,2 ,5 ,'player')
                         health_bar = Health_Bar(10, 10, player.health, player.health)
                     elif tile == 16:
                         enemy = Soldier('enemy',x * TILE_SIZE ,y * TILE_SIZE ,0.8 ,2 ,'enemy')
@@ -396,6 +396,7 @@ def draw_bg():
     screen.blit(sky_img, (0, 0))
     width = mountain_img.get_width()
     for x in range(5):
+        screen.blit(sky_img, ((x * width) - bg_scroll * 0.03, 0))
         screen.blit(mountain_img, ((x * width) - bg_scroll * 0.6, Screen_Height - mountain_img.get_height() - 300))
         screen.blit(pine1_img, ((x * width) - bg_scroll * 0.7, Screen_Height - pine1_img.get_height() - 150))
         screen.blit(pine2_img, ((x * width) - bg_scroll * 0.8, Screen_Height - pine2_img.get_height()))
