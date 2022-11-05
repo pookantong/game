@@ -27,9 +27,9 @@ level = 1
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLACK = (0,0,0)
-Health_img = pygame.image.load('img/Item/0.png')
-Damage_img = pygame.image.load('img/Item/1.png')
-Empty_img = pygame.image.load('img/Item/2.png')
+Health_img = pygame.image.load('img/Item/0.png').convert_alpha()
+Damage_img = pygame.image.load('img/Item/1.png').convert_alpha()
+Empty_img = pygame.image.load('img/Item/2.png').convert_alpha()
 item_drops = {
     'Health' : Health_img,
     'Damage' : Damage_img,
@@ -65,7 +65,7 @@ class Item_Drop(pygame.sprite.Sprite):
             enemy.kill()
     
 
-bullet_img = pygame.image.load('img/bullet/0.png')
+bullet_img = pygame.image.load('img/bullet/0.png').convert_alpha()
 scale_bullet = 0.8
 damage = 25
 class Bullet(pygame.sprite.Sprite):
@@ -140,7 +140,7 @@ class Soldier(pygame.sprite.Sprite):
             temp_list = []
             num_of_frames = len(os.listdir(f'img/{self.char_type}/{animation}'))
             for i in range(num_of_frames):
-                img = pygame.image.load(f'img/{self.char_type}/{animation}/{i}.png')
+                img = pygame.image.load(f'img/{self.char_type}/{animation}/{i}.png').convert_alpha()
                 img = pygame.transform.scale(img,(int(img.get_width()*scale),int(img.get_height()*scale)))
                 temp_list.append(img)
             self.animation_list.append(temp_list)
@@ -189,6 +189,9 @@ class Soldier(pygame.sprite.Sprite):
             #check_collision_x
             if tile[1].colliderect(self.rect.x + dx, self.rect.y, self.width, self.height):
                   dx = 0
+                  if self.char_type == enemy:
+                      self.direction *= -1
+                      self.move_counter = 0
             if tile[1].colliderect(self.rect.x, self.rect.y + dy, self.width, self.height):
                   if self.vel_y < 0:
                       self.vel_y = 0
@@ -307,7 +310,7 @@ class Soldier(pygame.sprite.Sprite):
         
 img_list = []
 for x in range(TILE_TYPES):
-    img = pygame.image.load(f'img/tile/{x}.png')
+    img = pygame.image.load(f'img/tile/{x}.png').convert_alpha()
     img = pygame.transform.scale(img, (TILE_SIZE, TILE_SIZE)) 
     img_list.append(img)        
 class World():
@@ -383,10 +386,10 @@ class Exit(pygame.sprite.Sprite):
         self.rect.x += screen_scroll                 
               
             
-pine1_img = pygame.image.load('img/background/pine1.png')
-pine2_img = pygame.image.load('img/background/pine2.png')
-mountain_img = pygame.image.load('img/background/mountain.png')
-sky_img = pygame.image.load('img/background/sky_cloud.png')
+pine1_img = pygame.image.load('img/background/pine1.png').convert_alpha()
+pine2_img = pygame.image.load('img/background/pine2.png').convert_alpha()
+mountain_img = pygame.image.load('img/background/mountain.png').convert_alpha()
+sky_img = pygame.image.load('img/background/sky_cloud.png').convert_alpha()
 sky_img = pygame.transform.scale(sky_img,(int(sky_img.get_width()*2),int(sky_img.get_height()*2)))
 def draw_bg():
     screen.fill('grey')
