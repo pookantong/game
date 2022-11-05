@@ -7,13 +7,13 @@ from pygame.locals import *
 pygame.init()
 
 Screen_Width = 1280
-Screen_Height = Screen_Width * 0.5625 
+Screen_Height = 720 
 
 screen = pygame.display.set_mode((Screen_Width,Screen_Height))
 pygame.display.set_caption('The Soldier')
 
 
-Gravity = 0.5
+Gravity = 0.65
 SCROLL_THRESH = 250
 ROWS = 16
 COLS = 150
@@ -75,11 +75,9 @@ class Bullet(pygame.sprite.Sprite):
         self.image = bullet_img
         self.image = pygame.transform.scale(bullet_img,(int(bullet_img.get_width()*scale_bullet),int(bullet_img.get_height()*scale_bullet)))
         self.rect = self.image.get_rect()
-        self.pos_bull = 10
         self.direction = direction
         if self.direction == -1:
-            self.image = pygame.transform.flip(self.image,True,False)
-            self.pos_bull =  self.pos_bull * -1 
+            self.image = pygame.transform.flip(self.image,True,False) 
         self.rect.center = (x,y)
             
     def update(self):
@@ -200,6 +198,9 @@ class Soldier(pygame.sprite.Sprite):
                       self.in_air = False
                       dy = tile[1].top - self.rect.bottom
         
+        if self.char_type == 'player':
+            if self.rect.left + dx < 0 or self.rect.right + dx > Screen_Width:
+                dx = 0
     
         #move rect   
         self.rect.x += dx
@@ -207,7 +208,7 @@ class Soldier(pygame.sprite.Sprite):
         
         
         if self.char_type == 'player':
-            if self.rect.right > Screen_Width - SCROLL_THRESH or self.rect.left < SCROLL_THRESH:
+            if (self.rect.right > Screen_Width - SCROLL_THRESH and bg_scroll < (world.level_length * TILE_SIZE) - Screen_Width) or (self.rect.left < SCROLL_THRESH and bg_scroll > abs(dx)):
                 self.rect.x -= dx
                 screen_scroll = -dx
         
@@ -228,14 +229,17 @@ class Soldier(pygame.sprite.Sprite):
             
     def ai(self):
         if self.alive and player.alive:
+            
             if self.idling == False and random.randint(1, 200) == 1:
                 self.update_action(0)
                 self.idling = True
                 self.idling_counter = 50
+                self.vision.center = ((self.rect.centerx + 125 * self.direction) + screen_scroll, self.rect.centery)
                 
             if self.vision.colliderect(player.rect):
                 self.update_action(0)
-                self.shoot() 
+                self.shoot()
+                self.vision.center = ((self.rect.centerx + 125 * self.direction) + screen_scroll, self.rect.centery) 
             else: 
                 if self.idling == False:
                     if self.direction == 1:
@@ -246,7 +250,7 @@ class Soldier(pygame.sprite.Sprite):
                     self.move(ai_moving_left, ai_moving_right)
                     self.update_action(1)
                     self.move_counter += 1
-                    self.vision.center = (self.rect.centerx + 125 * self.direction, self.rect.centery)
+                    self.vision.center = ((self.rect.centerx + 125 * self.direction) + screen_scroll, self.rect.centery)
                     
                     if self.move_counter > TILE_SIZE:
                         self.direction *= -1
@@ -255,7 +259,10 @@ class Soldier(pygame.sprite.Sprite):
                     self.idling_counter -= 1
                     if self.idling_counter <= 0:
                         self.idling = False
-                        
+                
+                if self.idling == True:
+                    self.vision.center = ((self.rect.centerx + 125 * self.direction) + screen_scroll, self.rect.centery)
+             
         self.rect.x += screen_scroll
             
             
@@ -308,6 +315,7 @@ class World():
         self.obstacle_list = []
         
     def process_data(self, data):
+        self.level_length = len(data[0])
         for y, row in enumerate(data):
             for x, tile in enumerate(row):
                 if tile >= 0:
@@ -385,9 +393,9 @@ def draw_bg():
     screen.blit(sky_img, (0, 0))
     width = mountain_img.get_width()
     for x in range(5):
-        screen.blit(mountain_img, ((x * width) - bg_scroll, Screen_Height - mountain_img.get_height() - 300))
-        screen.blit(pine1_img, ((x * width) - bg_scroll, Screen_Height - pine1_img.get_height() - 150))
-        screen.blit(pine2_img, ((x * width) - bg_scroll, Screen_Height - pine2_img.get_height()))
+        screen.blit(mountain_img, ((x * width) - bg_scroll * 0.6, Screen_Height - mountain_img.get_height() - 300))
+        screen.blit(pine1_img, ((x * width) - bg_scroll * 0.7, Screen_Height - pine1_img.get_height() - 150))
+        screen.blit(pine2_img, ((x * width) - bg_scroll * 0.8, Screen_Height - pine2_img.get_height()))
 
 class Health_Bar():
     def __init__(self, x, y, health, max_health):
@@ -493,8 +501,8 @@ while run :
                 player.jump = False
             if event.key == K_SPACE:
                 shoot = False
-            
-                            
+          
+                               
     pygame.display.update()
     clock.tick(FPS)
 pygame.quit()
