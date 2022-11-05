@@ -14,10 +14,13 @@ pygame.display.set_caption('The Soldier')
 
 
 Gravity = 0.5
+SCROLL_THRESH = 200
 ROWS = 16
 COLS = 150
 TILE_SIZE = Screen_Height // ROWS
 TILE_TYPES = 21
+screen_scroll = 0
+bg_scroll = 0
 level = 1
 
 
@@ -204,6 +207,8 @@ class Soldier(pygame.sprite.Sprite):
         self.rect.x += dx
         self.rect.y += dy
         
+        
+        
     def shoot(self):
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = 20
@@ -349,9 +354,16 @@ class Exit(pygame.sprite.Sprite):
                      
               
             
-
+pine1_img = pygame.image.load('img/background/pine1.png')
+pine2_img = pygame.image.load('img/background/pine2.png')
+mountain_img = pygame.image.load('img/background/mountain.png')
+sky_img = pygame.image.load('img/background/sky_cloud.png')
 def draw_bg():
     screen.fill('grey')
+    screen.blit(sky_img, (0, 0))
+    screen.blit(mountain_img, (0, Screen_Height - mountain_img.get_height() - 300))
+    screen.blit(pine1_img, (0, Screen_Height - pine1_img.get_height() - 150))
+    screen.blit(pine2_img, (0, Screen_Height - pine2_img.get_height()))
 
 class Health_Bar():
     def __init__(self, x, y, health, max_health):
