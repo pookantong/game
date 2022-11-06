@@ -21,6 +21,7 @@ TILE_SIZE = Screen_Height // ROWS
 TILE_TYPES = 21
 screen_scroll = 0
 bg_scroll = 0
+MAX_LEVELS = 3
 level = 1
 start_game = False
 
@@ -202,6 +203,18 @@ class Soldier(pygame.sprite.Sprite):
                       self.in_air = False
                       dy = tile[1].top - self.rect.bottom
         
+        if pygame.sprite.spritecollide(self, water_group, False):
+            self.health = 0
+        
+        level_complete = False    
+        if pygame.sprite.spritecollide(self, exit_group, False):
+            self.health = 0
+            level_complete = True
+        
+        if self.rect.bottom > Screen_Height:
+            self.health = 0
+        
+        
         if self.char_type == 'player':
             if self.rect.left + dx < 0 or self.rect.right + dx > Screen_Width:
                 dx = 0
@@ -216,7 +229,7 @@ class Soldier(pygame.sprite.Sprite):
                 self.rect.x -= dx
                 screen_scroll = -dx
         
-            return screen_scroll
+            return screen_scroll, level_complete
         
         
         
@@ -228,7 +241,7 @@ class Soldier(pygame.sprite.Sprite):
         
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = 20
-            bullet = Bullet(self.rect.centerx + (0.8*self.rect.size[0]*self.direction),self.rect.centery + self.shoot_y, self.direction)
+            bullet = Bullet(self.rect.centerx + (0.75*self.rect.size[0]*self.direction),self.rect.centery + self.shoot_y, self.direction)
             bullet_group.add(bullet)
             
     def ai(self):
@@ -266,6 +279,7 @@ class Soldier(pygame.sprite.Sprite):
                 
                 if self.idling == True:
                     self.vision.center = ((self.rect.centerx + 125 * self.direction) + screen_scroll, self.rect.centery)
+        
              
         self.rect.x += screen_scroll
             
@@ -384,11 +398,25 @@ class Exit(pygame.sprite.Sprite):
         self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))                      
                         
     def update(self):
-        self.rect.x += screen_scroll                 
-              
+        self.rect.x += screen_scroll
+        
+def reset_level():
+    enemy_group.empty()
+    bullet_group.empty()
+    decoration_group.empty()
+    water_group.empty()
+    exit_group.empty()
+    
+    data = []
+    for row in range(ROWS):
+        r = [-1] * COLS
+        data.append(r)
+                   
+    return data          
 
 start_img = pygame.image.load('img/start_btn.png').convert_alpha()
 exit_img = pygame.image.load('img/exit_btn.png').convert_alpha()
+restart_img = pygame.image.load('img/restart_btn.png').convert_alpha()
 
 
             
@@ -431,6 +459,7 @@ shoot = False
 
 start_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, start_img, 1)
 exit_button = button.Button(Screen_Width //  2 - 110, Screen_Height // 2 + 50, exit_img, 1)
+restart_button = button.Button(Screen_Width //  2 - 100, Screen_Height // 2 - 50, restart_img, 2)
 
 
 enemy_group = pygame.sprite.Group()
@@ -459,8 +488,10 @@ while run :
     
     if start_game == False:
         screen.fill('GREY')
-        start_button.draw(screen)
-        exit_button.draw(screen)
+        if start_button.draw(screen):
+            start_game = True
+        if exit_button.draw(screen):
+            run = False
     else:
         draw_bg()
         world.draw()
@@ -495,9 +526,38 @@ while run :
                 player.update_action(1)
             else:
                 player.update_action(0)
+            screen_scroll, level_complete = player.move(moving_left,moving_right)
+            bg_scroll -= screen_scroll
+            
+            if level_complete:
+                level += 1
+                bg_scroll = 0
+                world_data = reset_level()
+                if level <= MAX_LEVELS:
+                    with open(f'level{level}_data.csv', newline='') as csvfile:
+                        reader = csv.reader(csvfile, delimiter=',')
+                        for x, row in enumerate(reader):
+                            for y, tile in enumerate(row):
+                                world_data[x][y] = int(tile)
+                    world = World()
+                    player, health_bar = world.process_data(world_data)
+            
+        else:
+            screen_scroll = 0
+            if restart_button.draw(screen):
+                bg_scroll = 0
+                world_data = reset_level()
                 
-        screen_scroll = player.move(moving_left,moving_right)
-        bg_scroll -= screen_scroll 
+                with open(f'level{level}_data.csv', newline = '') as csvfile:
+                    reader = csv.reader(csvfile, delimiter=',')
+                    for x, row in enumerate(reader):
+                        for y, tile in enumerate(row):
+                            world_data[x][y] = int (tile)
+                world = World()
+                player, health_bar = world.process_data(world_data)
+                
+            
+             
     
     for event in pygame.event.get():
         if event.type == QUIT:
