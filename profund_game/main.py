@@ -23,7 +23,6 @@ screen_scroll = 0
 bg_scroll = 0
 MAX_LEVELS = 3
 level = 1
-start_game = False
 base_font = pygame.font.Font(None, 32)
 
 
@@ -248,7 +247,7 @@ class Soldier(pygame.sprite.Sprite):
             bullet_group.add(bullet)
             
     def ai(self):
-        if self.alive and player.alive:
+        if self.alive and player.alive and pause == False:
             
             if self.idling == False and random.randint(1, 200) == 1:
                 self.update_action(0)
@@ -424,6 +423,10 @@ exit_img = pygame.image.load('img/exit_btn.png').convert_alpha()
 restart_img = pygame.image.load('img/restart_btn.png').convert_alpha()
 home_img = pygame.image.load('img/home_btn.png').convert_alpha()
 score_board_img = pygame.image.load('img/score_board_btn.png').convert_alpha()
+reset_img = pygame.image.load('img/reset_btn.png').convert_alpha()
+resume_img = pygame.image.load('img/resume_btn.png').convert_alpha()
+yes_img = pygame.image.load('img/yes_btn.png').convert_alpha()
+no_img = pygame.image.load('img/no_btn.png').convert_alpha()
 
 
             
@@ -431,13 +434,12 @@ pine1_img = pygame.image.load('img/background/pine1.png').convert_alpha()
 pine2_img = pygame.image.load('img/background/pine2.png').convert_alpha()
 mountain_img = pygame.image.load('img/background/mountain.png').convert_alpha()
 sky_img = pygame.image.load('img/background/sky_cloud.png').convert_alpha()
-sky_img = pygame.transform.scale(sky_img,(int(sky_img.get_width()*2),int(sky_img.get_height()*2)))
+sky_img = pygame.transform.scale(sky_img,(int(sky_img.get_width()*2.5),int(sky_img.get_height()*2.5)))
 def draw_bg():
     screen.fill('grey')
     screen.blit(sky_img, (0, 0))
     width = mountain_img.get_width()
     for x in range(5):
-        screen.blit(sky_img, ((x * width) - bg_scroll * 0.03, 0))
         screen.blit(mountain_img, ((x * width) - bg_scroll * 0.6, Screen_Height - mountain_img.get_height() - 300))
         screen.blit(pine1_img, ((x * width) - bg_scroll * 0.7, Screen_Height - pine1_img.get_height() - 150))
         screen.blit(pine2_img, ((x * width) - bg_scroll * 0.8, Screen_Height - pine2_img.get_height()))
@@ -445,6 +447,12 @@ def draw_bg():
 def draw_score():
     text_score = base_font.render("SCORE : " + str(score + player.temp_score), True, (255, 255, 255))
     screen.blit(text_score, (1100,20))
+    
+def draw_name():
+    screen.fill(BLACK)
+    text_surface = base_font.render(player_name, True, (255, 255, 255))
+    screen.blit(text_surface,(0,0))
+    
 
 class Health_Bar():
     def __init__(self, x, y, health, max_health):
@@ -473,6 +481,12 @@ exit_button = button.Button(Screen_Width //  2 - 110, Screen_Height // 2 + 50, e
 restart_button = button.Button(Screen_Width //  2 - 100, Screen_Height // 2 - 50, restart_img, 2)
 home_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, home_img, 2)
 score_board_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, score_board_img, 1)
+reset_button = button.Button(Screen_Width //  2 + 500, Screen_Height // 2 - 150, reset_img, 1)
+resume_button = button.Button(Screen_Width //  2 + 500, Screen_Height // 2 - 150, resume_img, 1)
+yes_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, yes_img, 1)
+no_button = button.Button(Screen_Width //  2 + 110, Screen_Height // 2 + 50, no_img, 1)
+
+
 
 enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
@@ -498,17 +512,43 @@ player, health_bar = world.process_data(world_data)
 
 player_name = ''
 player_name_confirm = False
+pause = False
+start_game = False
+reset_check = False
 score = 0
 
 run = True 
 while run :
     
     if start_game == False:
+        pause = False
         screen.fill('GREY')
-        if start_button.draw(screen):
-            start_game = True
-        if exit_button.draw(screen):
-            run = False
+        if reset_check == False:
+            if start_button.draw(screen):
+                start_game = True
+            if exit_button.draw(screen):
+                run = False
+            if reset_button.draw(screen):
+                reset_check = True
+        elif reset_check:
+            screen.fill(GREEN)
+            if yes_button.draw(screen):
+                level = 1
+                score = 0
+                player.temp_score = 0
+                player_name_confirm = False
+                player_name = ''
+                world_data = reset_level()
+                with open(f'level{level}_data.csv', newline='') as csvfile:
+                    reader = csv.reader(csvfile, delimiter=',')
+                    for x, row in enumerate(reader):
+                        for y, tile in enumerate(row):
+                            world_data[x][y] = int(tile)
+                world = World()
+                player, health_bar = world.process_data(world_data)
+                reset_check = False
+            if no_button.draw(screen):
+                reset_check = False
     else:
         if player_name_confirm:
             draw_bg()
@@ -537,31 +577,62 @@ while run :
             
             #update action
             if player.alive:
-                if shoot:
-                    player.shoot()
-                if player.in_air:
-                    player.update_action(2)
-                elif moving_left or moving_right:
-                    player.update_action(1)
+                if pause == False:
+                    if shoot:
+                        player.shoot()
+                    if player.in_air:
+                        player.update_action(2)
+                    elif moving_left or moving_right:
+                        player.update_action(1)
+                    else:
+                        player.update_action(0)
+                    screen_scroll, level_complete = player.move(moving_left,moving_right)
+                    bg_scroll -= screen_scroll
+                    
+                    if level_complete:
+                        score += player.temp_score
+                        player.temp_score = 0
+                        level += 1
+                        bg_scroll = 0
+                        world_data = reset_level()
+                        if level <= MAX_LEVELS:
+                            with open(f'level{level}_data.csv', newline='') as csvfile:
+                                reader = csv.reader(csvfile, delimiter=',')
+                                for x, row in enumerate(reader):
+                                    for y, tile in enumerate(row):
+                                        world_data[x][y] = int(tile)
+                            world = World()
+                            player, health_bar = world.process_data(world_data)
                 else:
-                    player.update_action(0)
-                screen_scroll, level_complete = player.move(moving_left,moving_right)
-                bg_scroll -= screen_scroll
-                
-                if level_complete:
-                    score += player.temp_score
-                    player.temp_score = 0
-                    level += 1
-                    bg_scroll = 0
-                    world_data = reset_level()
-                    if level <= MAX_LEVELS:
-                        with open(f'level{level}_data.csv', newline='') as csvfile:
+                    if restart_button.draw(screen):
+                        bg_scroll = 0
+                        world_data = reset_level()
+                        player.temp_score = 0
+                        
+                        with open(f'level{level}_data.csv', newline = '') as csvfile:
                             reader = csv.reader(csvfile, delimiter=',')
                             for x, row in enumerate(reader):
                                 for y, tile in enumerate(row):
-                                    world_data[x][y] = int(tile)
+                                    world_data[x][y] = int (tile)
                         world = World()
                         player, health_bar = world.process_data(world_data)
+        
+                    elif home_button.draw(screen):
+                        player.temp_score = 0
+                        bg_scroll = 0
+                        world_data = reset_level()
+                        
+                        with open(f'level{level}_data.csv', newline = '') as csvfile:
+                            reader = csv.reader(csvfile, delimiter=',')
+                            for x, row in enumerate(reader):
+                                for y, tile in enumerate(row):
+                                    world_data[x][y] = int (tile)
+                        world = World()
+                        player, health_bar = world.process_data(world_data)
+                        start_game = False
+                    
+                    elif resume_button.draw(screen):
+                        pause = False
                 
             else:
                 screen_scroll = 0
@@ -580,10 +651,6 @@ while run :
                     
                     
                 elif home_button.draw(screen):
-                    level = 1
-                    player_name_confirm = False
-                    player_name = ''
-                    score = 0
                     player.temp_score = 0
                     bg_scroll = 0
                     world_data = reset_level()
@@ -597,9 +664,8 @@ while run :
                     player, health_bar = world.process_data(world_data)
                     start_game = False
         else:
-            screen.fill(BLACK)
-            text_surface = base_font.render(player_name, True, (255, 255, 255))
-            screen.blit(text_surface,(0,0))
+            pause = False
+            draw_name()
             for event in pygame.event.get():
                 if event.type == QUIT:
                     run = False
@@ -611,11 +677,7 @@ while run :
                     else:
                         player_name += event.unicode
                         
-                
-                  
-            
-             
-    
+                        
     for event in pygame.event.get():
         if event.type == QUIT:
             run = False
@@ -628,6 +690,8 @@ while run :
                 player.jump = True
             if event.key == K_SPACE:
                 shoot = True
+            if event.key == K_ESCAPE:
+                pause = True
         if event.type == pygame.KEYUP:
             if event.key == K_a:
                 moving_left = False
