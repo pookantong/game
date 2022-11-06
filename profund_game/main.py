@@ -637,6 +637,8 @@ while run :
                             world = World()
                             player, health_bar = world.process_data(world_data)
                             player.damage = temp_damage
+                        if level > MAX_LEVELS:
+                            pass
                 else:
                     screen_scroll = 0
                     if restart_button.draw(screen):
