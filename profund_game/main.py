@@ -1,4 +1,4 @@
-import pygame, sys, os, random ,csv, button
+import pygame, sys, os, random ,csv, button, time
 
 clock = pygame.time.Clock()
 FPS = 60   
@@ -84,7 +84,8 @@ class Bullet(pygame.sprite.Sprite):
             
     def update(self):
         #move bullet
-        self.rect.x += (self.direction*self.speed) + screen_scroll
+        if pause == False:
+            self.rect.x += (self.direction*self.speed) + screen_scroll
         #out of screen
         if self.rect.right < 0 or self.rect.left > Screen_Width:
             self.kill()
@@ -97,8 +98,8 @@ class Bullet(pygame.sprite.Sprite):
         #check collision with characters
         if pygame.sprite.spritecollide(player, bullet_group, False):
             if player.alive:
-                player.health -= 5
-                player.temp_score -= 5
+                player.health -= 2
+                player.temp_score -= 2
                 self.kill()
         #test enemy
         for enemy in enemy_group:
@@ -249,7 +250,7 @@ class Soldier(pygame.sprite.Sprite):
     def ai(self):
         if self.alive and player.alive and pause == False:
             
-            if self.idling == False and random.randint(1, 200) == 1:
+            if self.idling == False and random.randint(1, 120) == 1:
                 self.update_action(0)
                 self.idling = True
                 self.idling_counter = 50
@@ -292,12 +293,14 @@ class Soldier(pygame.sprite.Sprite):
         ANIMATION_COOLDOWN = 150
         
         self.image = self.animation_list[self.action][self.frame_index]     
-        if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN:
+        if pygame.time.get_ticks() - self.update_time > ANIMATION_COOLDOWN and pause == False:
             self.update_time = pygame.time.get_ticks()
-            if self.action != 3 or self.frame_index < len(self.animation_list[self.action])-1:
+            if self.action != 3 or self.frame_index < len(self.animation_list[self.action])-1 :
                 self.frame_index += 1
                 if self.action == 3 and self.frame_index == 1 and self.char_type != 'player':
                     player.temp_score += 100
+            if self.char_type != 'player' and player.alive == False:
+                self.frame_index -= 1
         if self.frame_index >= len(self.animation_list[self.action])-2:
             if self.action == 3 and self.type != 'player':
                 itemdrop = Item_Drop(self.ran,self.rect.centerx,self.rect.centery)
@@ -476,15 +479,17 @@ moving_right = False
 shoot = False
 
  
-start_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, start_img, 1)
-exit_button = button.Button(Screen_Width //  2 - 110, Screen_Height // 2 + 50, exit_img, 1)
-restart_button = button.Button(Screen_Width //  2 - 100, Screen_Height // 2 - 50, restart_img, 2)
-home_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, home_img, 2)
-score_board_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, score_board_img, 1)
-reset_button = button.Button(Screen_Width //  2 + 500, Screen_Height // 2 - 150, reset_img, 1)
-resume_button = button.Button(Screen_Width //  2 + 500, Screen_Height // 2 - 150, resume_img, 1)
-yes_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, yes_img, 1)
-no_button = button.Button(Screen_Width //  2 + 110, Screen_Height // 2 + 50, no_img, 1)
+start_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 150, start_img, 1.5)
+exit_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 150, exit_img, 1.5)
+restart_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 25, restart_img, 1.5)
+home_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 75, home_img, 1.5)
+restart_button1 = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 -75, restart_img, 1.5)
+home_button1 = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 25, home_img, 1.5)
+score_board_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 50, score_board_img, 1.5)
+reset_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 50, reset_img, 1.5)
+resume_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 125, resume_img, 1.5)
+yes_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 150, yes_img, 1.5)
+no_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 50, no_img, 1.5)
 
 
 
@@ -526,12 +531,14 @@ while run :
         if reset_check == False:
             if start_button.draw(screen):
                 start_game = True
-            if exit_button.draw(screen):
-                run = False
             if reset_button.draw(screen):
                 reset_check = True
+            if score_board_button.draw(screen):
+                pass
+            if exit_button.draw(screen):
+                run = False
         elif reset_check:
-            screen.fill(GREEN)
+            screen.fill('GREY')
             if yes_button.draw(screen):
                 level = 1
                 score = 0
@@ -546,9 +553,11 @@ while run :
                             world_data[x][y] = int(tile)
                 world = World()
                 player, health_bar = world.process_data(world_data)
-                reset_check = False
+                reset_check = False 
+                time.sleep(0.1) 
             if no_button.draw(screen):
                 reset_check = False
+                time.sleep(0.1)
     else:
         if player_name_confirm:
             draw_bg()
@@ -604,6 +613,7 @@ while run :
                             world = World()
                             player, health_bar = world.process_data(world_data)
                 else:
+                    screen_scroll = 0
                     if restart_button.draw(screen):
                         bg_scroll = 0
                         world_data = reset_level()
@@ -616,6 +626,7 @@ while run :
                                     world_data[x][y] = int (tile)
                         world = World()
                         player, health_bar = world.process_data(world_data)
+                        pause = False
         
                     elif home_button.draw(screen):
                         player.temp_score = 0
@@ -630,13 +641,14 @@ while run :
                         world = World()
                         player, health_bar = world.process_data(world_data)
                         start_game = False
+                        time.sleep(0.1)
                     
                     elif resume_button.draw(screen):
                         pause = False
                 
             else:
                 screen_scroll = 0
-                if restart_button.draw(screen):
+                if restart_button1.draw(screen):
                     bg_scroll = 0
                     world_data = reset_level()
                     player.temp_score = 0
@@ -650,7 +662,7 @@ while run :
                     player, health_bar = world.process_data(world_data)
                     
                     
-                elif home_button.draw(screen):
+                elif home_button1.draw(screen):
                     player.temp_score = 0
                     bg_scroll = 0
                     world_data = reset_level()
