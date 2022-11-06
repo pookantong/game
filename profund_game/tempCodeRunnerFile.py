@@ -1,2 +1,1 @@
-
-        if player.in_air:
+restart_button

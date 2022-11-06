@@ -417,6 +417,8 @@ def reset_level():
 start_img = pygame.image.load('img/start_btn.png').convert_alpha()
 exit_img = pygame.image.load('img/exit_btn.png').convert_alpha()
 restart_img = pygame.image.load('img/restart_btn.png').convert_alpha()
+home_img = pygame.image.load('img/home_btn.png').convert_alpha()
+score_board_img = pygame.image.load('img/score_board_btn.png').convert_alpha()
 
 
             
@@ -456,11 +458,12 @@ moving_left = False
 moving_right = False
 shoot = False
 
-
+ 
 start_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, start_img, 1)
 exit_button = button.Button(Screen_Width //  2 - 110, Screen_Height // 2 + 50, exit_img, 1)
 restart_button = button.Button(Screen_Width //  2 - 100, Screen_Height // 2 - 50, restart_img, 2)
-
+home_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, home_img, 2)
+score_board_button = button.Button(Screen_Width //  2 - 130, Screen_Height // 2 - 150, score_board_img, 1)
 
 enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
@@ -556,6 +559,20 @@ while run :
                 world = World()
                 player, health_bar = world.process_data(world_data)
                 
+            elif home_button.draw(screen):
+                bg_scroll = 0
+                world_data = reset_level()
+                
+                with open(f'level{level}_data.csv', newline = '') as csvfile:
+                    reader = csv.reader(csvfile, delimiter=',')
+                    for x, row in enumerate(reader):
+                        for y, tile in enumerate(row):
+                            world_data[x][y] = int (tile)
+                world = World()
+                player, health_bar = world.process_data(world_data)
+                start_game = False
+                
+                  
             
              
     
