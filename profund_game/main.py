@@ -488,8 +488,8 @@ home_button1 = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 25, h
 score_board_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 50, score_board_img, 1.5)
 reset_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 50, reset_img, 1.5)
 resume_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 125, resume_img, 1.5)
-yes_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 150, yes_img, 1.5)
-no_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 50, no_img, 1.5)
+yes_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 75, yes_img, 1.5)
+no_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 25, no_img, 1.5)
 
 
 
