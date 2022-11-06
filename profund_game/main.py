@@ -65,7 +65,23 @@ class Item_Drop(pygame.sprite.Sprite):
             #delete the item box
             self.kill()
             enemy.kill()
-    
+
+class DamageText(pygame.sprite.Sprite):
+    def __init__(self, x, y, damage, color):
+        pygame.sprite.Sprite.__init__(self)
+        self.image = base_font.render(damage, True, color)
+        self.rect = self.image.get_rect()
+        self.rect.center = (x, y)
+        self.counter = 0
+
+    def update(self):
+        self.rect.x += screen_scroll
+        self.rect.y -= 1
+        # delete after a few seconds
+        self.counter += 1
+        if self.counter > 100:
+            self.kill()
+ 
 
 bullet_img = pygame.image.load('img/bullet/0.png').convert_alpha()
 scale_bullet = 0.8
@@ -101,11 +117,14 @@ class Bullet(pygame.sprite.Sprite):
                 player.health -= 2
                 player.temp_score -= 2
                 self.kill()
+                
         #test enemy
         for enemy in enemy_group:
             if pygame.sprite.spritecollide(enemy, bullet_group, False):
                 if enemy.alive:
                     enemy.health -= player.damage
+                    damage_text = DamageText(enemy.rect.centerx, enemy.rect.centery, str(player.damage), (255, 255, 255))
+                    damage_text_group.add(damage_text)
                     self.kill()
                     
             
@@ -413,6 +432,7 @@ def reset_level():
     decoration_group.empty()
     water_group.empty()
     exit_group.empty()
+    damage_text_group.empty()
     
     data = []
     for row in range(ROWS):
@@ -493,6 +513,7 @@ no_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 25, no_i
 
 
 
+damage_text_group = pygame.sprite.Group()
 enemy_group = pygame.sprite.Group()
 bullet_group = pygame.sprite.Group()
 decoration_group = pygame.sprite.Group()
@@ -574,10 +595,12 @@ while run :
                 enemy.update()
             
             #update and draw group
+            damage_text_group.update()
             bullet_group.update()
             decoration_group.update()
             water_group.update()
             exit_group.update()
+            damage_text_group.draw(screen)
             bullet_group.draw(screen)
             decoration_group.draw(screen)
             water_group.draw(screen)
@@ -601,6 +624,7 @@ while run :
                     if level_complete:
                         score += player.temp_score
                         player.temp_score = 0
+                        temp_damage = player.damage
                         level += 1
                         bg_scroll = 0
                         world_data = reset_level()
@@ -612,13 +636,14 @@ while run :
                                         world_data[x][y] = int(tile)
                             world = World()
                             player, health_bar = world.process_data(world_data)
+                            player.damage = temp_damage
                 else:
                     screen_scroll = 0
                     if restart_button.draw(screen):
                         bg_scroll = 0
                         world_data = reset_level()
                         player.temp_score = 0
-                        
+                        temp_damage = player.damage
                         with open(f'level{level}_data.csv', newline = '') as csvfile:
                             reader = csv.reader(csvfile, delimiter=',')
                             for x, row in enumerate(reader):
@@ -626,13 +651,14 @@ while run :
                                     world_data[x][y] = int (tile)
                         world = World()
                         player, health_bar = world.process_data(world_data)
+                        player.damage = temp_damage
                         pause = False
         
                     elif home_button.draw(screen):
                         player.temp_score = 0
                         bg_scroll = 0
                         world_data = reset_level()
-                        
+                        temp_damage = player.damage
                         with open(f'level{level}_data.csv', newline = '') as csvfile:
                             reader = csv.reader(csvfile, delimiter=',')
                             for x, row in enumerate(reader):
@@ -640,6 +666,7 @@ while run :
                                     world_data[x][y] = int (tile)
                         world = World()
                         player, health_bar = world.process_data(world_data)
+                        player.damage = temp_damage
                         start_game = False
                         time.sleep(0.1)
                     
@@ -652,7 +679,7 @@ while run :
                     bg_scroll = 0
                     world_data = reset_level()
                     player.temp_score = 0
-                    
+                    temp_damage = player.damage
                     with open(f'level{level}_data.csv', newline = '') as csvfile:
                         reader = csv.reader(csvfile, delimiter=',')
                         for x, row in enumerate(reader):
@@ -660,13 +687,14 @@ while run :
                                 world_data[x][y] = int (tile)
                     world = World()
                     player, health_bar = world.process_data(world_data)
+                    player.damage = temp_damage
                     
                     
                 elif home_button1.draw(screen):
                     player.temp_score = 0
                     bg_scroll = 0
                     world_data = reset_level()
-                    
+                    temp_damage = player.damage
                     with open(f'level{level}_data.csv', newline = '') as csvfile:
                         reader = csv.reader(csvfile, delimiter=',')
                         for x, row in enumerate(reader):
@@ -674,6 +702,7 @@ while run :
                                 world_data[x][y] = int (tile)
                     world = World()
                     player, health_bar = world.process_data(world_data)
+                    player.damage = temp_damage
                     start_game = False
         else:
             pause = False
