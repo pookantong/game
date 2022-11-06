@@ -715,7 +715,7 @@ while run :
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         player_name = player_name[:-1]
-                    else:
+                    elif len(player_name) <= 20:
                         player_name += event.unicode
                     if event.key == pygame.K_RETURN:
                         player_name_confirm = True
