@@ -24,6 +24,7 @@ bg_scroll = 0
 MAX_LEVELS = 3
 level = 1
 start_game = False
+base_font = pygame.font.Font(None, 32)
 
 
 RED = (255,0,0)
@@ -98,6 +99,7 @@ class Bullet(pygame.sprite.Sprite):
         if pygame.sprite.spritecollide(player, bullet_group, False):
             if player.alive:
                 player.health -= 5
+                player.temp_score -= 5
                 self.kill()
         #test enemy
         for enemy in enemy_group:
@@ -135,6 +137,7 @@ class Soldier(pygame.sprite.Sprite):
         self.idling = False
         self.idling_counter = 0
         self.ran = random.choice(['Health','Damage','Empty','Empty'])
+        self.temp_score = 0
         
         #Animation
         animation_types = ['idle','run','jump','death']
@@ -294,6 +297,8 @@ class Soldier(pygame.sprite.Sprite):
             self.update_time = pygame.time.get_ticks()
             if self.action != 3 or self.frame_index < len(self.animation_list[self.action])-1:
                 self.frame_index += 1
+                if self.action == 3 and self.frame_index == 1 and self.char_type != 'player':
+                    player.temp_score += 100
         if self.frame_index >= len(self.animation_list[self.action])-2:
             if self.action == 3 and self.type != 'player':
                 itemdrop = Item_Drop(self.ran,self.rect.centerx,self.rect.centery)
@@ -437,6 +442,10 @@ def draw_bg():
         screen.blit(pine1_img, ((x * width) - bg_scroll * 0.7, Screen_Height - pine1_img.get_height() - 150))
         screen.blit(pine2_img, ((x * width) - bg_scroll * 0.8, Screen_Height - pine2_img.get_height()))
 
+def draw_score():
+    text_score = base_font.render("SCORE : " + str(score + player.temp_score), True, (255, 255, 255))
+    screen.blit(text_score, (1100,20))
+
 class Health_Bar():
     def __init__(self, x, y, health, max_health):
         self.x = x
@@ -486,6 +495,11 @@ with open(f'level{level}_data.csv', newline = '') as csvfile:
 world = World()
 player, health_bar = world.process_data(world_data)
 
+
+player_name = ''
+player_name_confirm = False
+score = 0
+
 run = True 
 while run :
     
@@ -496,81 +510,107 @@ while run :
         if exit_button.draw(screen):
             run = False
     else:
-        draw_bg()
-        world.draw()
-        health_bar.draw(player.health)
-        
-        player.draw()
-        player.update()
-        
-        for enemy in enemy_group:
-            enemy.ai()
-            enemy.draw()
-            enemy.update()
-        
-        #update and draw group
-        bullet_group.update()
-        decoration_group.update()
-        water_group.update()
-        exit_group.update()
-        bullet_group.draw(screen)
-        decoration_group.draw(screen)
-        water_group.draw(screen)
-        exit_group.draw(screen)
-        
-        
-        #update action
-        if player.alive:
-            if shoot:
-                player.shoot()
-            if player.in_air:
-                player.update_action(2)
-            elif moving_left or moving_right:
-                player.update_action(1)
-            else:
-                player.update_action(0)
-            screen_scroll, level_complete = player.move(moving_left,moving_right)
-            bg_scroll -= screen_scroll
+        if player_name_confirm:
+            draw_bg()
+            world.draw()
+            health_bar.draw(player.health)
+            draw_score()
             
-            if level_complete:
-                level += 1
-                bg_scroll = 0
-                world_data = reset_level()
-                if level <= MAX_LEVELS:
-                    with open(f'level{level}_data.csv', newline='') as csvfile:
+            player.draw()
+            player.update()
+            
+            for enemy in enemy_group:
+                enemy.ai()
+                enemy.draw()
+                enemy.update()
+            
+            #update and draw group
+            bullet_group.update()
+            decoration_group.update()
+            water_group.update()
+            exit_group.update()
+            bullet_group.draw(screen)
+            decoration_group.draw(screen)
+            water_group.draw(screen)
+            exit_group.draw(screen)
+            
+            
+            #update action
+            if player.alive:
+                if shoot:
+                    player.shoot()
+                if player.in_air:
+                    player.update_action(2)
+                elif moving_left or moving_right:
+                    player.update_action(1)
+                else:
+                    player.update_action(0)
+                screen_scroll, level_complete = player.move(moving_left,moving_right)
+                bg_scroll -= screen_scroll
+                
+                if level_complete:
+                    score += player.temp_score
+                    player.temp_score = 0
+                    level += 1
+                    bg_scroll = 0
+                    world_data = reset_level()
+                    if level <= MAX_LEVELS:
+                        with open(f'level{level}_data.csv', newline='') as csvfile:
+                            reader = csv.reader(csvfile, delimiter=',')
+                            for x, row in enumerate(reader):
+                                for y, tile in enumerate(row):
+                                    world_data[x][y] = int(tile)
+                        world = World()
+                        player, health_bar = world.process_data(world_data)
+                
+            else:
+                screen_scroll = 0
+                if restart_button.draw(screen):
+                    bg_scroll = 0
+                    world_data = reset_level()
+                    player.temp_score = 0
+                    
+                    with open(f'level{level}_data.csv', newline = '') as csvfile:
                         reader = csv.reader(csvfile, delimiter=',')
                         for x, row in enumerate(reader):
                             for y, tile in enumerate(row):
-                                world_data[x][y] = int(tile)
+                                world_data[x][y] = int (tile)
                     world = World()
                     player, health_bar = world.process_data(world_data)
-            
+                    
+                    
+                elif home_button.draw(screen):
+                    level = 1
+                    player_name_confirm = False
+                    player_name = ''
+                    score = 0
+                    player.temp_score = 0
+                    bg_scroll = 0
+                    world_data = reset_level()
+                    
+                    with open(f'level{level}_data.csv', newline = '') as csvfile:
+                        reader = csv.reader(csvfile, delimiter=',')
+                        for x, row in enumerate(reader):
+                            for y, tile in enumerate(row):
+                                world_data[x][y] = int (tile)
+                    world = World()
+                    player, health_bar = world.process_data(world_data)
+                    start_game = False
         else:
-            screen_scroll = 0
-            if restart_button.draw(screen):
-                bg_scroll = 0
-                world_data = reset_level()
-                
-                with open(f'level{level}_data.csv', newline = '') as csvfile:
-                    reader = csv.reader(csvfile, delimiter=',')
-                    for x, row in enumerate(reader):
-                        for y, tile in enumerate(row):
-                            world_data[x][y] = int (tile)
-                world = World()
-                player, health_bar = world.process_data(world_data)
-                
-            elif home_button.draw(screen):
-                bg_scroll = 0
-                world_data = reset_level()
-                
-                with open(f'level{level}_data.csv', newline = '') as csvfile:
-                    reader = csv.reader(csvfile, delimiter=',')
-                    for x, row in enumerate(reader):
-                        for y, tile in enumerate(row):
-                            world_data[x][y] = int (tile)
-                world = World()
-                player, health_bar = world.process_data(world_data)
-                start_game = False
+            screen.fill(BLACK)
+            text_surface = base_font.render(player_name, True, (255, 255, 255))
+            screen.blit(text_surface,(0,0))
+            for event in pygame.event.get():
+                if event.type == QUIT:
+                    run = False
+                if event.type == pygame.KEYDOWN:
+                    if event.key == pygame.K_BACKSPACE:
+                        player_name = player_name[:-1]
+                    if event.key == pygame.K_RETURN:
+                        player_name_confirm = True
+                    else:
+                        player_name += event.unicode
+                        
                 
                   
             
@@ -597,8 +637,7 @@ while run :
                 player.jump = False
             if event.key == K_SPACE:
                 shoot = False
-          
-                               
+                                  
     pygame.display.update()
     clock.tick(FPS)
 pygame.quit()
