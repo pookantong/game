@@ -672,10 +672,10 @@ while run :
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         player_name = player_name[:-1]
-                    if event.key == pygame.K_RETURN:
-                        player_name_confirm = True
                     else:
                         player_name += event.unicode
+                    if event.key == pygame.K_RETURN:
+                        player_name_confirm = True
                         
                         
     for event in pygame.event.get():
