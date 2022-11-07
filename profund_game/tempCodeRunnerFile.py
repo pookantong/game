@@ -1,1 +1,1 @@
-temp_damage
+and player.in_air == False

@@ -31,6 +31,16 @@ base_font = pygame.font.Font(None, 32)
 RED = (255,0,0)
 GREEN = (0,255,0)
 BLACK = (0,0,0)
+
+pygame.mixer.music.load('audio/music2.mp3')
+pygame.mixer.music.set_volume(0.3)
+pygame.mixer.music.play(-1, 0.0, 5000)
+jump_fx = pygame.mixer.Sound('audio/jump.wav')
+jump_fx.set_volume(0.5)
+shot_fx = pygame.mixer.Sound('audio/shot.wav')
+shot_fx.set_volume(0.5)
+
+
 Health_img = pygame.image.load('img/Item/0.png').convert_alpha()
 Damage_img = pygame.image.load('img/Item/1.png').convert_alpha()
 Empty_img = pygame.image.load('img/Item/2.png').convert_alpha()
@@ -270,6 +280,7 @@ class Soldier(pygame.sprite.Sprite):
             self.shoot_cooldown = 20
             bullet = Bullet(self.rect.centerx + (0.75*self.rect.size[0]*self.direction),self.rect.centery + self.shoot_y, self.direction)
             bullet_group.add(bullet)
+            shot_fx.play()
             
     def ai(self):
         if self.alive and player.alive and pause == False:
@@ -741,7 +752,8 @@ while run :
                 moving_left = True
             if event.key == K_d:
                 moving_right = True
-            if event.key == K_w and player.alive:
+            if event.key == K_w and player.alive and player.in_air == False:
+                jump_fx.play()
                 player.jump = True
             if event.key == K_SPACE:
                 shoot = True
