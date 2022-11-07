@@ -18,7 +18,7 @@ SCROLL_THRESH = 250
 ROWS = 16
 COLS = 150
 TILE_SIZE = Screen_Height // ROWS
-TILE_TYPES = 21
+TILE_TYPES = 25
 screen_scroll = 0
 bg_scroll = 0
 MAX_LEVELS = 3
@@ -385,6 +385,9 @@ class World():
                     elif tile == 20:
                         exits = Exit(img, x * TILE_SIZE, y * TILE_SIZE)
                         exit_group.add(exits)
+                    elif tile >= 21 and tile <= 24:
+                        self.obstacle_list.append(tile_data)
+
         return player, health_bar
     
     def draw(self):
