@@ -1,9 +1,11 @@
-import pygame, sys, os, random ,csv, button, time
+import pygame, sys, os, random ,csv, button
+from pygame import mixer
 
 clock = pygame.time.Clock()
 FPS = 60   
 
 from pygame.locals import *
+mixer.init()
 pygame.init()
 
 Screen_Width = 1280
@@ -548,6 +550,7 @@ player_name_confirm = False
 pause = False
 start_game = False
 reset_check = False
+score_board_show = False
 score = 0
 
 run = True 
@@ -562,7 +565,7 @@ while run :
             if reset_button.draw(screen):
                 reset_check = True
             if score_board_button.draw(screen):
-                pass
+                score_board_show = True
             if exit_button.draw(screen):
                 run = False
         elif reset_check:
@@ -582,10 +585,14 @@ while run :
                 world = World()
                 player, health_bar = world.process_data(world_data)
                 reset_check = False 
-                time.sleep(0.1) 
             if no_button.draw(screen):
                 reset_check = False
-                time.sleep(0.1)
+        if score_board_show and reset_check == False:
+            screen.fill('GREY')
+            if home_button.draw(screen):
+                score_board_show = False
+            
+                
     else:
         if player_name_confirm:
             draw_bg()
@@ -645,7 +652,8 @@ while run :
                             player, health_bar = world.process_data(world_data)
                             player.damage = temp_damage
                         if level > MAX_LEVELS:
-                            pass
+                            start_game = False
+                            score_board_show = True
                 else:
                     screen_scroll = 0
                     if restart_button.draw(screen):
@@ -677,7 +685,7 @@ while run :
                         player, health_bar = world.process_data(world_data)
                         player.damage = temp_damage
                         start_game = False
-                        time.sleep(0.1)
+
                     
                     elif resume_button.draw(screen):
                         pause = False
