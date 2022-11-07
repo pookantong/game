@@ -147,7 +147,7 @@ class Soldier(pygame.sprite.Sprite):
         self.health = 100
         self.max_health = self.health
         if char_type == 'enemy':
-            self.health = 100*level
+            self.health = 100+((level-1)*30)
         else:
             self.health = 100
         self.animation_list = []
@@ -376,7 +376,7 @@ class World():
                     elif tile >= 9 and tile <=10:
                         water = Water(img, x * TILE_SIZE, y * TILE_SIZE)
                         water_group.add(water)
-                    elif tile >= 11 and tile <= 14:
+                    elif (tile >= 11 and tile <= 14) or tile >= 25:
                         decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
                         decoration_group.add(decoration)
                     elif tile == 15:
@@ -390,6 +390,7 @@ class World():
                         exit_group.add(exits)
                     elif tile >= 21 and tile <= 24:
                         self.obstacle_list.append(tile_data)
+                        
 
         return player, health_bar
     
