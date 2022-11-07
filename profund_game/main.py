@@ -552,6 +552,7 @@ start_game = False
 reset_check = False
 score_board_show = False
 score = 0
+temp_damage = player.damage
 
 run = True 
 while run :
@@ -660,7 +661,6 @@ while run :
                         bg_scroll = 0
                         world_data = reset_level()
                         player.temp_score = 0
-                        temp_damage = player.damage
                         with open(f'level{level}_data.csv', newline = '') as csvfile:
                             reader = csv.reader(csvfile, delimiter=',')
                             for x, row in enumerate(reader):
@@ -675,7 +675,6 @@ while run :
                         player.temp_score = 0
                         bg_scroll = 0
                         world_data = reset_level()
-                        temp_damage = player.damage
                         with open(f'level{level}_data.csv', newline = '') as csvfile:
                             reader = csv.reader(csvfile, delimiter=',')
                             for x, row in enumerate(reader):
@@ -696,7 +695,6 @@ while run :
                     bg_scroll = 0
                     world_data = reset_level()
                     player.temp_score = 0
-                    temp_damage = player.damage
                     with open(f'level{level}_data.csv', newline = '') as csvfile:
                         reader = csv.reader(csvfile, delimiter=',')
                         for x, row in enumerate(reader):
@@ -711,7 +709,6 @@ while run :
                     player.temp_score = 0
                     bg_scroll = 0
                     world_data = reset_level()
-                    temp_damage = player.damage
                     with open(f'level{level}_data.csv', newline = '') as csvfile:
                         reader = csv.reader(csvfile, delimiter=',')
                         for x, row in enumerate(reader):
