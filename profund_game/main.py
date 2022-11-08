@@ -427,7 +427,7 @@ class World():
                         enemy = Soldier('enemy',x * TILE_SIZE ,y * TILE_SIZE ,0.8 ,2 ,'enemy')
                         enemy_group.add(enemy)
                     elif tile == 17:
-                        item_box = ItemBox('Ammo', x * TILE_SIZE, y * TILE_SIZE)
+                        item_box = ItemBox('Damage', x * TILE_SIZE, y * TILE_SIZE)
                         item_box_group.add(item_box)
                     elif tile == 19:#create health box
                         item_box = ItemBox('Health', x * TILE_SIZE, y * TILE_SIZE)
@@ -767,6 +767,7 @@ while run :
                     player, health_bar = world.process_data(world_data)
                     player.damage = temp_damage
                     start_game = False
+                    score_board_show = False
         else:
             pause = False
             draw_name()
