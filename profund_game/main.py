@@ -851,7 +851,7 @@ while run :
                         player, health_bar = world.process_data(world_data)
                         player.damage = temp_damage
                         start_game = False
-                        score_board_show = False
+                        
 
                     
                     elif resume_button.draw(screen):
@@ -886,7 +886,7 @@ while run :
                     player, health_bar = world.process_data(world_data)
                     player.damage = temp_damage
                     start_game = False
-                    score_board_show = False
+                    
         else:
             pause = False
             draw_name()
