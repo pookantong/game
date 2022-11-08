@@ -187,7 +187,7 @@ class Soldier(pygame.sprite.Sprite):
         self.health = 100
         self.max_health = self.health
         if char_type == 'enemy':
-            self.health = 100+((level-1)*30)
+            self.health = 100+((level-1)*50)
         else:
             self.health = 100
         self.animation_list = []
