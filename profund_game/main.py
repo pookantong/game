@@ -27,6 +27,7 @@ bg_scroll = 0
 MAX_LEVELS = 3
 level = 1
 base_font = pygame.font.Font(None, 32)
+base_font2 = pygame.font.Font(None, 56)
 
 
 RED = (255,0,0)
@@ -529,9 +530,14 @@ def draw_score():
     screen.blit(text_score, (1100,20))
     
 def draw_name():
-    screen.fill(BLACK)
+    screen.fill('GREY')
+    
+    text_name = base_font2.render("INPUT YOUR NAME", True, (255, 255, 255))
+    screen.blit(text_name, (Screen_Width//2 - text_name.get_width()//2, 50))
+    
     text_surface = base_font.render(player_name, True, (255, 255, 255))
-    screen.blit(text_surface,(0,0))
+    pygame.draw.rect(screen, 'WHITE', pygame.Rect(Screen_Width//2 - text_surface.get_width()//2-5, Screen_Height//2 - text_surface.get_height()//2-5, text_surface.get_width()+10, text_surface.get_height()+5),  2)
+    screen.blit(text_surface,(Screen_Width//2 - text_surface.get_width()//2, Screen_Height//2 - text_surface.get_height()//2))
     
 
 class Health_Bar():
