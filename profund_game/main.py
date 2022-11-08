@@ -50,6 +50,7 @@ item_drops = {
     'Empty' : Empty_img,
 }
 
+
 class Item_Drop(pygame.sprite.Sprite):
     def __init__(self, item_type, x, y):
         pygame.sprite.Sprite.__init__(self)
@@ -77,6 +78,33 @@ class Item_Drop(pygame.sprite.Sprite):
             #delete the item box
             self.kill()
             enemy.kill()
+            
+item_boxes = {
+    'Health' : Health_img,
+    'Damage' : Damage_img,
+}
+class ItemBox(pygame.sprite.Sprite):
+    def __init__(self, item_type, x, y):
+        pygame.sprite.Sprite.__init__(self)
+        self.item_type = item_type
+        self.image = item_boxes[self.item_type]
+        self.rect = self.image.get_rect()
+        self.rect.midtop = (x + TILE_SIZE // 2, y + (TILE_SIZE - self.image.get_height()))
+
+
+    def update(self):
+        #scroll
+        self.rect.x += screen_scroll
+        #check if the player has picked up the box
+        if pygame.sprite.collide_rect(self, player):
+            #check what kind of box it was
+            if self.item_type == 'Health':
+                player.health += 25
+                if player.health > player.max_health:
+                    player.health = player.max_health
+            elif self.item_type == 'Damage':
+                player.damage += 5
+            self.kill()
 
 class DamageText(pygame.sprite.Sprite):
     def __init__(self, x, y, damage, color):
@@ -398,6 +426,12 @@ class World():
                     elif tile == 16:
                         enemy = Soldier('enemy',x * TILE_SIZE ,y * TILE_SIZE ,0.8 ,2 ,'enemy')
                         enemy_group.add(enemy)
+                    elif tile == 17:
+                        item_box = ItemBox('Ammo', x * TILE_SIZE, y * TILE_SIZE)
+                        item_box_group.add(item_box)
+                    elif tile == 19:#create health box
+                        item_box = ItemBox('Health', x * TILE_SIZE, y * TILE_SIZE)
+                        item_box_group.add(item_box)
                     elif tile == 20:
                         exits = Exit(img, x * TILE_SIZE, y * TILE_SIZE)
                         exit_group.add(exits)
@@ -453,6 +487,7 @@ def reset_level():
     water_group.empty()
     exit_group.empty()
     damage_text_group.empty()
+    item_box_group.empty()
     
     data = []
     for row in range(ROWS):
@@ -539,6 +574,7 @@ bullet_group = pygame.sprite.Group()
 decoration_group = pygame.sprite.Group()
 water_group = pygame.sprite.Group()
 exit_group = pygame.sprite.Group()
+item_box_group = pygame.sprite.Group()
 
 
 
@@ -626,11 +662,13 @@ while run :
             decoration_group.update()
             water_group.update()
             exit_group.update()
+            item_box_group.update()
             damage_text_group.draw(screen)
             bullet_group.draw(screen)
             decoration_group.draw(screen)
             water_group.draw(screen)
             exit_group.draw(screen)
+            item_box_group.draw(screen)
             
             
             #update action
