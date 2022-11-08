@@ -1,5 +1,6 @@
 import pygame, sys, os, random ,csv, button
 from pygame import mixer
+from scoreboard import Score_input
 
 clock = pygame.time.Clock()
 FPS = 60   
@@ -239,8 +240,10 @@ class Soldier(pygame.sprite.Sprite):
             dx =  self.speed
             self.flip = False
             self.direction = 1
-            
-        if self.jump == True and self.in_air == False:
+        
+        dy += self.vel_y
+        
+        if self.jump == True and self.in_air == False and dy == 0:
             self.vel_y = -11
             self.jump = False
             self.in_air = True
@@ -248,8 +251,7 @@ class Soldier(pygame.sprite.Sprite):
         #Gravity
         self.vel_y += Gravity
         if self.vel_y > 10:
-            self.vel_y 
-        dy += self.vel_y
+            self.vel_y
         
         #check_collision
         for tile in world.obstacle_list:
@@ -547,6 +549,99 @@ class Health_Bar():
         pygame.draw.rect(screen, RED, (self.x, self.y, 150, 20))
         pygame.draw.rect(screen, GREEN, (self.x, self.y, 150 * ratio, 20))
         
+        
+sctxt =open("scorebar.txt",'r')
+pltxt =open("player.txt",'r')
+scin =sctxt.read()
+plin =pltxt.read()
+            
+scorex =""
+scorelist =[]
+scindex =-1
+
+playerx=""
+playerlist =[]
+plindex =-1
+
+for x in scin:
+    scindex +=1
+    scorex += x
+    if x =='\n' or scindex == len(scin)-1:
+        scorelist.append(scorex)
+        scorex= ""
+
+for x in plin:
+    plindex +=1
+    playerx += x
+    if x =='\n' or plindex == len(plin)-1:
+        playerlist.append(playerx)
+        playerx= ""
+sctxt.close()
+pltxt.close()   
+tran = True   
+        
+        
+        
+class Score_Board():
+    
+    def read (self):
+        sctxt =open("scorebar.txt",'r')
+        pltxt =open("player.txt",'r')
+        scin =sctxt.read()
+        plin =pltxt.read()
+            
+        scorex =""
+        scorelist =[]
+        scindex =-1
+
+        playerx=""
+        playerlist =[]
+        plindex =-1
+
+        for x in scin:
+            scindex +=1
+            scorex += x
+            if x =='\n' or scindex == len(scin)-1:
+                scorelist.append(scorex)
+                scorex= ""
+
+        for x in plin:
+            plindex +=1
+            playerx += x
+            if x =='\n' or plindex == len(plin)-1:
+                playerlist.append(playerx)
+                playerx= ""
+
+        self.playername_first = Score_input(screen,"1. "+playerlist[0],(0,0,0),20,200,1)
+        self.playername_second = Score_input(screen,"2. "+playerlist[1],(0,0,0),20,250,1)
+        self.playername_third = Score_input(screen,"3. "+playerlist[2],(0,0,0),20,300,1)
+        self.playername_fourth = Score_input(screen,"4. "+playerlist[3],(0,0,0),20,350,1)
+        self.playername_fifth = Score_input(screen,"5. "+playerlist[4],(0,0,0),20,400,1)
+        
+        self.score_first = Score_input(screen,scorelist[0],(0,0,0),300,200,1)
+        self.score_second = Score_input(screen,scorelist[1],(0,0,0),300,250,1)
+        self.score_third = Score_input(screen,scorelist[2],(0,0,0),300,300,1)
+        self.score_fourth = Score_input(screen,scorelist[3],(0,0,0),300,350,1)
+        self.score_fifth = Score_input(screen,scorelist[4],(0,0,0),300,400,1)
+
+        sctxt.close()
+        pltxt.close()
+    def display_score(self):
+        self.read()
+        self.playername_first.draw()
+        self.playername_second.draw()
+        self.playername_third.draw()
+        self.playername_fourth.draw()
+        self.playername_fifth.draw()
+        self.score_first.draw()
+        self.score_second.draw()
+        self.score_third.draw()
+        self.score_fourth.draw()
+        self.score_fifth.draw()
+    def run(self):
+        screen.fill('GREY')
+        self.display_score() 
+        
 
 
 moving_left = False
@@ -598,6 +693,7 @@ pause = False
 start_game = False
 reset_check = False
 score_board_show = False
+score_board = Score_Board()
 score = 0
 temp_damage = player.damage
 
@@ -635,10 +731,10 @@ while run :
                 reset_check = False 
             if no_button.draw(screen):
                 reset_check = False
-        if score_board_show and reset_check == False:
-            screen.fill('GREY')
+        if score_board_show == True and reset_check == False:
+            score_board.run()
             if home_button.draw(screen):
-                score_board_show = False
+                    score_board_show = False
             
                 
     else:
@@ -703,7 +799,29 @@ while run :
                             player.damage = temp_damage
                         if level > MAX_LEVELS:
                             start_game = False
+                            for x in range(len(scorelist)) :
+                                if score >= int(scorelist[x]) and tran == True :
+                                    scorelist.insert(x,str(score)+'\n')
+                                    scorelist.pop(len(scorelist)-1)
+                                    playerlist.insert(x,player_name+'\n')
+                                    playerlist.pop(len(playerlist)-1)
+                                    tran = False
+                            plsend = ""
+                            scsend = ""
+                            for i in playerlist:
+                                plsend += i
+                            for i in scorelist:
+                                scsend += i
+                                
+                            sctxt = open("scorebar.txt",'w') 
+                            pltxt = open("player.txt",'w')
+                            sctxt.write(scsend)
+                            pltxt.write(plsend)
+                            sctxt.close()
+                            pltxt.close()
                             score_board_show = True
+                            if home_button.draw(screen):
+                                score_board_show = False
                 else:
                     screen_scroll = 0
                     if restart_button.draw(screen):
@@ -733,6 +851,7 @@ while run :
                         player, health_bar = world.process_data(world_data)
                         player.damage = temp_damage
                         start_game = False
+                        score_board_show = False
 
                     
                     elif resume_button.draw(screen):
@@ -777,9 +896,9 @@ while run :
                 if event.type == pygame.KEYDOWN:
                     if event.key == pygame.K_BACKSPACE:
                         player_name = player_name[:-1]
-                    elif len(player_name) <= 20:
+                    elif len(player_name) <= 20 and event.key != pygame.K_RETURN:
                         player_name += event.unicode
-                    if event.key == pygame.K_RETURN:
+                    if event.key == pygame.K_RETURN and len(player_name) >= 1:
                         player_name_confirm = True
                         
                         
@@ -791,7 +910,7 @@ while run :
                 moving_left = True
             if event.key == K_d:
                 moving_right = True
-            if event.key == K_w and player.alive and player.in_air == False:
+            if event.key == K_w and player.alive and player.in_air == False and start_game:
                 jump_fx.play()
                 player.jump = True
             if event.key == K_SPACE:

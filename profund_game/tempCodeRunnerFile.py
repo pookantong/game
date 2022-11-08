@@ -1,1 +1,1 @@
-and player.in_air == False
+Score_Board.run(
