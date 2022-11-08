@@ -37,6 +37,8 @@ BLACK = (0,0,0)
 pygame.mixer.music.load('audio/music2.mp3')
 pygame.mixer.music.set_volume(0.3)
 pygame.mixer.music.play(-1, 0.0, 5000)
+item_fx = pygame.mixer.Sound('audio/item.wav')
+item_fx.set_volume(0.5)
 jump_fx = pygame.mixer.Sound('audio/jump.wav')
 jump_fx.set_volume(0.5)
 shot_fx = pygame.mixer.Sound('audio/shot.wav')
@@ -70,10 +72,12 @@ class Item_Drop(pygame.sprite.Sprite):
             #check what kind of box it was
             if self.item_type == 'Health':
                 player.health += 25
+                item_fx.play()
                 if player.health > player.max_health:
                     player.health = player.max_health
             elif self.item_type == 'Damage':
                 player.damage += 5
+                item_fx.play()
             elif self.item_type == 'Empty':
                 self.kill()
                 enemy.kill()
@@ -102,10 +106,12 @@ class ItemBox(pygame.sprite.Sprite):
             #check what kind of box it was
             if self.item_type == 'Health':
                 player.health += 25
+                item_fx.play()
                 if player.health > player.max_health:
                     player.health = player.max_health
             elif self.item_type == 'Damage':
                 player.damage += 5
+                item_fx.play()
             self.kill()
 
 class DamageText(pygame.sprite.Sprite):
@@ -538,7 +544,14 @@ def draw_name():
     text_surface = base_font.render(player_name, True, (255, 255, 255))
     pygame.draw.rect(screen, 'WHITE', pygame.Rect(Screen_Width//2 - text_surface.get_width()//2-5, Screen_Height//2 - text_surface.get_height()//2-5, text_surface.get_width()+10, text_surface.get_height()+5),  2)
     screen.blit(text_surface,(Screen_Width//2 - text_surface.get_width()//2, Screen_Height//2 - text_surface.get_height()//2))
+
+def draw_menu():
     
+    text_name = base_font2.render("THE SOLDIER", True, (255, 255, 255))
+    screen.blit(text_name, (Screen_Width//2 - text_name.get_width()//2, 50))
+    
+    text_surface = base_font.render("65010895 Yotsapat Punyaworapan", True, (255, 255, 255))
+    screen.blit(text_surface,(Screen_Width - text_surface.get_width()-5, Screen_Height - text_surface.get_height()-5))    
 
 class Health_Bar():
     def __init__(self, x, y, health, max_health):
@@ -709,6 +722,7 @@ while run :
     if start_game == False:
         pause = False
         screen.fill('GREY')
+        draw_menu()
         if reset_check == False:
             if start_button.draw(screen):
                 start_game = True
