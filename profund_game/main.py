@@ -1,6 +1,6 @@
 import pygame, sys, os, random ,csv, button
 from pygame import mixer
-from scoreboard import Score_input
+from scoreboard import ScoreInput
 
 clock = pygame.time.Clock()
 FPS = 60   
@@ -35,7 +35,7 @@ GREEN = (0,255,0)
 BLACK = (0,0,0)
 
 pygame.mixer.music.load('audio/music2.mp3')
-pygame.mixer.music.set_volume(0.3)
+pygame.mixer.music.set_volume(0.2)
 pygame.mixer.music.play(-1, 0.0, 5000)
 item_fx = pygame.mixer.Sound('audio/item.wav')
 item_fx.set_volume(0.5)
@@ -631,17 +631,17 @@ class Score_Board():
                 playerlist.append(playerx)
                 playerx= ""
 
-        self.playername_first = Score_input(screen,"1. "+playerlist[0],(0,0,0),20,200,1)
-        self.playername_second = Score_input(screen,"2. "+playerlist[1],(0,0,0),20,250,1)
-        self.playername_third = Score_input(screen,"3. "+playerlist[2],(0,0,0),20,300,1)
-        self.playername_fourth = Score_input(screen,"4. "+playerlist[3],(0,0,0),20,350,1)
-        self.playername_fifth = Score_input(screen,"5. "+playerlist[4],(0,0,0),20,400,1)
+        self.playername_first = ScoreInput(screen,"1. "+playerlist[0],(0,0,0),20,150,3)
+        self.playername_second = ScoreInput(screen,"2. "+playerlist[1],(0,0,0),20,250,3)
+        self.playername_third = ScoreInput(screen,"3. "+playerlist[2],(0,0,0),20,350,3)
+        self.playername_fourth = ScoreInput(screen,"4. "+playerlist[3],(0,0,0),20,450,3)
+        self.playername_fifth = ScoreInput(screen,"5. "+playerlist[4],(0,0,0),20,550,3)
         
-        self.score_first = Score_input(screen,scorelist[0],(0,0,0),300,200,1)
-        self.score_second = Score_input(screen,scorelist[1],(0,0,0),300,250,1)
-        self.score_third = Score_input(screen,scorelist[2],(0,0,0),300,300,1)
-        self.score_fourth = Score_input(screen,scorelist[3],(0,0,0),300,350,1)
-        self.score_fifth = Score_input(screen,scorelist[4],(0,0,0),300,400,1)
+        self.score_first = ScoreInput(screen,scorelist[0],(0,0,0),500,150,3)
+        self.score_second = ScoreInput(screen,scorelist[1],(0,0,0),500,250,3)
+        self.score_third = ScoreInput(screen,scorelist[2],(0,0,0),500,350,3)
+        self.score_fourth = ScoreInput(screen,scorelist[3],(0,0,0),500,450,3)
+        self.score_fifth = ScoreInput(screen,scorelist[4],(0,0,0),500,550,3)
 
         sctxt.close()
         pltxt.close()
@@ -671,15 +671,15 @@ shoot = False
 start_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 150, start_img, 1.5)
 exit_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 150, exit_img, 1.5)
 restart_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 25, restart_img, 1.5)
-home_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 75, home_img, 1.5)
+home_button1 = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 75, home_img, 1.5)
 restart_button1 = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 -75, restart_img, 1.5)
-home_button1 = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 25, home_img, 1.5)
+home_button = button.Button(Screen_Width - 292, Screen_Height // 2 - 25, home_img, 1.5)
 score_board_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 50, score_board_img, 1.5)
 reset_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 50, reset_img, 1.5)
 resume_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 125, resume_img, 1.5)
 yes_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 - 75, yes_img, 1.5)
 no_button = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 25, no_img, 1.5)
-
+home_button2 = button.Button(Screen_Width //  2 - 96, Screen_Height // 2 + 75, home_img, 1.5)
 
 
 damage_text_group = pygame.sprite.Group()
@@ -858,7 +858,7 @@ while run :
                         player.damage = temp_damage
                         pause = False
         
-                    elif home_button.draw(screen):
+                    elif home_button2.draw(screen):
                         player.temp_score = 0
                         bg_scroll = 0
                         world_data = reset_level()
