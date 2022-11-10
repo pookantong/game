@@ -848,6 +848,18 @@ while run :
                             pltxt.close()
                             score_board_show = True
                             level = 1
+                            score = 0
+                            player.temp_score = 0
+                            player_name_confirm = False
+                            player_name = ''
+                            world_data = reset_level()
+                            with open(f'level{level}_data.csv', newline='') as csvfile:
+                                reader = csv.reader(csvfile, delimiter=',')
+                                for x, row in enumerate(reader):
+                                    for y, tile in enumerate(row):
+                                        world_data[x][y] = int(tile)
+                            world = World()
+                            player, health_bar = world.process_data(world_data)
                             if home_button.draw(screen):
                                 score_board_show = False
                                 time.sleep(0.1)
