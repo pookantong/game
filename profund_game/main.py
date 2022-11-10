@@ -1,4 +1,4 @@
-import pygame, sys, os, random ,csv, button
+import pygame, sys, os, random ,csv, button, time
 from pygame import mixer
 from scoreboard import ScoreInput
 
@@ -726,12 +726,16 @@ while run :
         if reset_check == False:
             if start_button.draw(screen):
                 start_game = True
+                time.sleep(0.1)
             if reset_button.draw(screen):
                 reset_check = True
+                time.sleep(0.1)
             if score_board_button.draw(screen):
                 score_board_show = True
+                time.sleep(0.1)
             if exit_button.draw(screen):
                 run = False
+                time.sleep(0.1)
         elif reset_check:
             screen.fill('GREY')
             if yes_button.draw(screen):
@@ -748,13 +752,16 @@ while run :
                             world_data[x][y] = int(tile)
                 world = World()
                 player, health_bar = world.process_data(world_data)
-                reset_check = False 
+                reset_check = False
+                time.sleep(0.1) 
             if no_button.draw(screen):
                 reset_check = False
+                time.sleep(0.1)
         if score_board_show == True and reset_check == False:
             score_board.run()
             if home_button.draw(screen):
                     score_board_show = False
+                    time.sleep(0.1)
             
                 
     else:
@@ -840,8 +847,10 @@ while run :
                             sctxt.close()
                             pltxt.close()
                             score_board_show = True
+                            level = 1
                             if home_button.draw(screen):
                                 score_board_show = False
+                                time.sleep(0.1)
                 else:
                     screen_scroll = 0
                     if restart_button.draw(screen):
@@ -857,7 +866,7 @@ while run :
                         player, health_bar = world.process_data(world_data)
                         player.damage = temp_damage
                         pause = False
-        
+                        time.sleep(0.1)
                     elif home_button2.draw(screen):
                         player.temp_score = 0
                         bg_scroll = 0
@@ -871,7 +880,7 @@ while run :
                         player, health_bar = world.process_data(world_data)
                         player.damage = temp_damage
                         start_game = False
-                        
+                        time.sleep(0.1)
 
                     
                     elif resume_button.draw(screen):
@@ -891,7 +900,7 @@ while run :
                     world = World()
                     player, health_bar = world.process_data(world_data)
                     player.damage = temp_damage
-                    
+                    time.sleep(0.1)
                     
                 elif home_button1.draw(screen):
                     player.temp_score = 0
@@ -906,6 +915,7 @@ while run :
                     player, health_bar = world.process_data(world_data)
                     player.damage = temp_damage
                     start_game = False
+                    time.sleep(0.1)
                     
         else:
             pause = False
