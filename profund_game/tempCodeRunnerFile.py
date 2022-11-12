@@ -1,1 +1,1 @@
-Score_Board.run(
+screen

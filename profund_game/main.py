@@ -162,8 +162,8 @@ class Bullet(pygame.sprite.Sprite):
         #check collision with characters
         if pygame.sprite.spritecollide(player, bullet_group, False):
             if player.alive:
-                player.health -= 2
-                player.temp_score -= 2
+                player.health -= 2*level
+                player.temp_score -= 2*level
                 self.kill()
                 
         #test enemy
@@ -573,7 +573,7 @@ sctxt =open("scorebar.txt",'r')
 pltxt =open("player.txt",'r')
 scin =sctxt.read()
 plin =pltxt.read()
-            
+                
 scorex =""
 scorelist =[]
 scindex =-1
