@@ -191,19 +191,17 @@ class Bullet(pygame.sprite.Sprite):
             
 class Soldier(pygame.sprite.Sprite):
     
-    def __init__(self, char_type, x, y, scale, speed, type):
+    def __init__(self, char_type, x, y, scale, speed):
         pygame.sprite.Sprite.__init__(self)
         self.alive = True
-        self.type = type
         self.char_type = char_type
         self.speed = speed
         self.direction = 1
         self.vel_y = 0
         self.jump = False
-        self.in_air = True
+        self.in_air = False
         self.flip = False
         self.shoot_cooldown = 0
-        self.shoot_y = 0
         self.damage = damage
         self.health = 100
         self.max_health = self.health
@@ -270,8 +268,6 @@ class Soldier(pygame.sprite.Sprite):
         
         #Gravity
         self.vel_y += Gravity
-        if self.vel_y > 10:
-            self.vel_y
         
         #check_collision
         for tile in world.obstacle_list:
@@ -295,7 +291,6 @@ class Soldier(pygame.sprite.Sprite):
         
         level_complete = False    
         if pygame.sprite.spritecollide(self, exit_group, False):
-            self.health = 0
             level_complete = True
         
         if self.rect.bottom > Screen_Height:
@@ -328,7 +323,7 @@ class Soldier(pygame.sprite.Sprite):
         
         if self.shoot_cooldown == 0:
             self.shoot_cooldown = 20
-            bullet = Bullet(self.rect.centerx + (0.75*self.rect.size[0]*self.direction),self.rect.centery + self.shoot_y, self.direction)
+            bullet = Bullet(self.rect.centerx + (0.75*self.rect.size[0]*self.direction), self.rect.centery, self.direction)
             bullet_group.add(bullet)
             shot_fx.play()
             
@@ -387,11 +382,11 @@ class Soldier(pygame.sprite.Sprite):
             if self.char_type != 'player' and player.alive == False:
                 self.frame_index -= 1
         if self.frame_index >= len(self.animation_list[self.action])-2:
-            if self.action == 3 and self.type != 'player':
+            if self.action == 3 and self.char_type != 'player':
                 itemdrop = Item_Drop(self.ran,self.rect.centerx,self.rect.centery)
                 itemdrop.draw()
                 itemdrop.update()
-            elif self.action == 3 and self.type == 'player':
+            elif self.action == 3 and self.char_type == 'player':
                 self.frame_index = len(self.animation_list[self.action]) - 1
             else:
                 self.frame_index = 0
@@ -443,10 +438,10 @@ class World():
                         decoration = Decoration(img, x * TILE_SIZE, y * TILE_SIZE)
                         decoration_group.add(decoration)
                     elif tile == 15:
-                        player = Soldier('player',x * TILE_SIZE ,y * TILE_SIZE ,2 ,5 ,'player')
+                        player = Soldier('player',x * TILE_SIZE ,y * TILE_SIZE ,2 ,5)
                         health_bar = Health_Bar(10, 10, player.health, player.health)
                     elif tile == 16:
-                        enemy = Soldier('enemy',x * TILE_SIZE ,y * TILE_SIZE ,0.8 ,2 ,'enemy')
+                        enemy = Soldier('enemy',x * TILE_SIZE ,y * TILE_SIZE ,0.8 ,2)
                         enemy_group.add(enemy)
                     elif tile == 17:
                         item_box = ItemBox('Damage', x * TILE_SIZE, y * TILE_SIZE)
