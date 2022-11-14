@@ -1,22 +1,31 @@
+#import lib and class
 import pygame, sys, os, random ,csv, button, time
 from pygame import mixer
 from scoreboard import ScoreInput
+from pygame.locals import *
 
+#FPS
 clock = pygame.time.Clock()
 FPS = 60   
 
-from pygame.locals import *
+#init
 mixer.init()
 pygame.init()
 
+#size screen
 Screen_Width = 1280
 Screen_Height = 720 
 
+#setup window
 screen = pygame.display.set_mode((Screen_Width,Screen_Height))
 pygame.display.set_caption('The Soldier')
+gameIcon = pygame.image.load('img/icon/65010895.png')
+pygame.display.set_icon(gameIcon)
 
-
+#variable
 Gravity = 0.65
+
+#variable map
 SCROLL_THRESH = 250
 ROWS = 16
 COLS = 150
@@ -26,6 +35,8 @@ screen_scroll = 0
 bg_scroll = 0
 MAX_LEVELS = 3
 level = 1
+
+#font
 base_font = pygame.font.Font(None, 32)
 base_font2 = pygame.font.Font(None, 56)
 
@@ -34,6 +45,7 @@ RED = (255,0,0)
 GREEN = (0,255,0)
 BLACK = (0,0,0)
 
+#load sound
 pygame.mixer.music.load('audio/music2.mp3')
 pygame.mixer.music.set_volume(0.2)
 pygame.mixer.music.play(-1, 0.0, 5000)
@@ -45,6 +57,7 @@ shot_fx = pygame.mixer.Sound('audio/shot.wav')
 shot_fx.set_volume(0.5)
 
 
+#load item
 Health_img = pygame.image.load('img/Item/0.png').convert_alpha()
 Damage_img = pygame.image.load('img/Item/1.png').convert_alpha()
 Empty_img = pygame.image.load('img/Item/2.png').convert_alpha()
@@ -162,8 +175,8 @@ class Bullet(pygame.sprite.Sprite):
         #check collision with characters
         if pygame.sprite.spritecollide(player, bullet_group, False):
             if player.alive:
-                player.health -= 2*level
-                player.temp_score -= 2*level
+                player.health -= 5*level
+                player.temp_score -= 5*level
                 self.kill()
                 
         #test enemy
@@ -195,7 +208,7 @@ class Soldier(pygame.sprite.Sprite):
         self.health = 100
         self.max_health = self.health
         if char_type == 'enemy':
-            self.health = 100+((level-1)*50)
+            self.health = 100*level
         else:
             self.health = 100
         self.animation_list = []
@@ -505,15 +518,15 @@ def reset_level():
                    
     return data          
 
-start_img = pygame.image.load('img/start_btn.png').convert_alpha()
-exit_img = pygame.image.load('img/exit_btn.png').convert_alpha()
-restart_img = pygame.image.load('img/restart_btn.png').convert_alpha()
-home_img = pygame.image.load('img/home_btn.png').convert_alpha()
-score_board_img = pygame.image.load('img/score_board_btn.png').convert_alpha()
-reset_img = pygame.image.load('img/reset_btn.png').convert_alpha()
-resume_img = pygame.image.load('img/resume_btn.png').convert_alpha()
-yes_img = pygame.image.load('img/yes_btn.png').convert_alpha()
-no_img = pygame.image.load('img/no_btn.png').convert_alpha()
+start_img = pygame.image.load('img/button/start_btn.png').convert_alpha()
+exit_img = pygame.image.load('img/button/exit_btn.png').convert_alpha()
+restart_img = pygame.image.load('img/button/restart_btn.png').convert_alpha()
+home_img = pygame.image.load('img/button/home_btn.png').convert_alpha()
+score_board_img = pygame.image.load('img/button/score_board_btn.png').convert_alpha()
+reset_img = pygame.image.load('img/button/reset_btn.png').convert_alpha()
+resume_img = pygame.image.load('img/button/resume_btn.png').convert_alpha()
+yes_img = pygame.image.load('img/button/yes_btn.png').convert_alpha()
+no_img = pygame.image.load('img/button/no_btn.png').convert_alpha()
 
 
             
@@ -569,8 +582,8 @@ class Health_Bar():
         pygame.draw.rect(screen, GREEN, (self.x, self.y, 150 * ratio, 20))
         
         
-sctxt =open("scorebar.txt",'r')
-pltxt =open("player.txt",'r')
+sctxt =open("save/scorebar.txt",'r')
+pltxt =open("save/player.txt",'r')
 scin =sctxt.read()
 plin =pltxt.read()
                 
@@ -604,8 +617,8 @@ tran = True
 class Score_Board():
     
     def read (self):
-        sctxt =open("scorebar.txt",'r')
-        pltxt =open("player.txt",'r')
+        sctxt =open("save/scorebar.txt",'r')
+        pltxt =open("save/player.txt",'r')
         scin =sctxt.read()
         plin =pltxt.read()
             
@@ -696,15 +709,19 @@ world_data = []
 for row in range(ROWS):
     r = [-1] * COLS
     world_data.append(r)
+    
+    
+def Resetmap():
+    with open(f'map/level{level}_data.csv', newline='') as csvfile:
+        reader = csv.reader(csvfile, delimiter=',')
+        for x, row in enumerate(reader):
+            for y, tile in enumerate(row):
+                world_data[x][y] = int(tile)
 
-with open(f'level{level}_data.csv', newline = '') as csvfile:
-    reader = csv.reader(csvfile, delimiter=',')
-    for x, row in enumerate(reader):
-        for y, tile in enumerate(row):
-            world_data[x][y] = int (tile)
+Resetmap()
 world = World()
 player, health_bar = world.process_data(world_data)
-
+    
 
 player_name = ''
 player_name_confirm = False
@@ -745,11 +762,7 @@ while run :
                 player_name_confirm = False
                 player_name = ''
                 world_data = reset_level()
-                with open(f'level{level}_data.csv', newline='') as csvfile:
-                    reader = csv.reader(csvfile, delimiter=',')
-                    for x, row in enumerate(reader):
-                        for y, tile in enumerate(row):
-                            world_data[x][y] = int(tile)
+                Resetmap()
                 world = World()
                 player, health_bar = world.process_data(world_data)
                 reset_check = False
@@ -816,11 +829,7 @@ while run :
                         bg_scroll = 0
                         world_data = reset_level()
                         if level <= MAX_LEVELS:
-                            with open(f'level{level}_data.csv', newline='') as csvfile:
-                                reader = csv.reader(csvfile, delimiter=',')
-                                for x, row in enumerate(reader):
-                                    for y, tile in enumerate(row):
-                                        world_data[x][y] = int(tile)
+                            Resetmap()
                             world = World()
                             player, health_bar = world.process_data(world_data)
                             player.damage = temp_damage
@@ -840,8 +849,8 @@ while run :
                             for i in scorelist:
                                 scsend += i
                                 
-                            sctxt = open("scorebar.txt",'w') 
-                            pltxt = open("player.txt",'w')
+                            sctxt = open("save/scorebar.txt",'w') 
+                            pltxt = open("save/player.txt",'w')
                             sctxt.write(scsend)
                             pltxt.write(plsend)
                             sctxt.close()
@@ -853,11 +862,7 @@ while run :
                             player_name_confirm = False
                             player_name = ''
                             world_data = reset_level()
-                            with open(f'level{level}_data.csv', newline='') as csvfile:
-                                reader = csv.reader(csvfile, delimiter=',')
-                                for x, row in enumerate(reader):
-                                    for y, tile in enumerate(row):
-                                        world_data[x][y] = int(tile)
+                            Resetmap()
                             world = World()
                             player, health_bar = world.process_data(world_data)
                             if home_button.draw(screen):
@@ -868,8 +873,7 @@ while run :
                     if restart_button.draw(screen):
                         bg_scroll = 0
                         world_data = reset_level()
-                        player.temp_score = 0
-                        with open(f'level{level}_data.csv', newline = '') as csvfile:
+                        with open(f'map/level{level}_data.csv', newline = '') as csvfile:
                             reader = csv.reader(csvfile, delimiter=',')
                             for x, row in enumerate(reader):
                                 for y, tile in enumerate(row):
@@ -883,11 +887,7 @@ while run :
                         player.temp_score = 0
                         bg_scroll = 0
                         world_data = reset_level()
-                        with open(f'level{level}_data.csv', newline = '') as csvfile:
-                            reader = csv.reader(csvfile, delimiter=',')
-                            for x, row in enumerate(reader):
-                                for y, tile in enumerate(row):
-                                    world_data[x][y] = int (tile)
+                        Resetmap()
                         world = World()
                         player, health_bar = world.process_data(world_data)
                         player.damage = temp_damage
@@ -904,11 +904,7 @@ while run :
                     bg_scroll = 0
                     world_data = reset_level()
                     player.temp_score = 0
-                    with open(f'level{level}_data.csv', newline = '') as csvfile:
-                        reader = csv.reader(csvfile, delimiter=',')
-                        for x, row in enumerate(reader):
-                            for y, tile in enumerate(row):
-                                world_data[x][y] = int (tile)
+                    Resetmap()
                     world = World()
                     player, health_bar = world.process_data(world_data)
                     player.damage = temp_damage
@@ -918,11 +914,7 @@ while run :
                     player.temp_score = 0
                     bg_scroll = 0
                     world_data = reset_level()
-                    with open(f'level{level}_data.csv', newline = '') as csvfile:
-                        reader = csv.reader(csvfile, delimiter=',')
-                        for x, row in enumerate(reader):
-                            for y, tile in enumerate(row):
-                                world_data[x][y] = int (tile)
+                    Resetmap()
                     world = World()
                     player, health_bar = world.process_data(world_data)
                     player.damage = temp_damage
